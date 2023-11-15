@@ -1,5 +1,5 @@
 global_coordinates:
-  altitude: 90.0
-  latitude: 38.736832
-  longitude: -9.137977
-px4_dir: ~/PX4-Autopilot
+  altitude: 1.0
+  latitude: 51.990932
+  longitude: 4.3783414
+px4_dir: /home/kjell/Documents/Repositories/PX4-Autopilot
