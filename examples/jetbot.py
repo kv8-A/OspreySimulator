@@ -12,19 +12,12 @@ import carb
 from omni.isaac.core.utils.nucleus import get_assets_root_path
 from omni.isaac.core.utils.stage import add_reference_to_stage
 from omni.isaac.core.robots import Robot
+from omni.isaac.core.robots import RobotView
 import carb
 from pegasus.simulator.params import ROBOTS, SIMULATION_ENVIRONMENTS
 
 world = World()
 world.scene.add_default_ground_plane()
-# fancy_cube =  world.scene.add(
-    # DynamicCuboid(
-    #     prim_path="/World/random_cube",
-    #     name="fancy_cube",
-    #     position=np.array([0, 0, 1.0]),
-    #     scale=np.array([0.5015, 0.5015, 0.5015]),
-    #     color=np.array([0, 0, 1.0]),
-    # ))
 
 assets_root_path = get_assets_root_path()
 if assets_root_path is None:
@@ -41,18 +34,6 @@ jetbot_robot = world.scene.add(Robot(prim_path="/World/Fancy_Robot", name="fancy
         # the first reset so we can do so there
 print("Num of degrees of freedom before first reset: " + str(jetbot_robot.num_dof)) # prints None
 
-
-#### FIXED WING ADD
-add_reference_to_stage(usd_path=ROBOTS["fixed-wing"], prim_path="/World/Fancy_Robot2")
-fixedwing_robot = world.scene.add(Robot(prim_path="/World/Fancy_Robot2", name="fancy_robot2"))
-
-dof_fix = fixedwing_robot.num_dof
-# pos_fix = fixedwing_robot.get_joint_postitions()
-print(dof_fix)
-# print(pos_fix)
-# Print info
-
-
 # Resetting the world needs to be called before querying anything related to an articulation specifically.
 # Its recommended to always do a reset after adding your assets, for physics handles to be propagated properly
 world.reset()
@@ -61,9 +42,6 @@ dof = jetbot_robot.num_dof
 pos = jetbot_robot.get_joint_positions()
 print(dof)
 print(pos)
-
-dof_fix = fixedwing_robot.num_dof
-pos_fix = fixedwing_robot.get_joint_postitions()
 
 # def send_robot_actions(jetbot_articulation_controller):
 #     # Every articulation controller has apply_action method
@@ -77,21 +55,10 @@ pos_fix = fixedwing_robot.get_joint_postitions()
 #     return
 
 for i in range(500):
-    # position, orientation = fancy_cube.get_world_pose()
-    # linear_velocity = fancy_cube.get_linear_velocity()
-    # # will be shown on terminal
-    # print("Cube position is : " + str(position))
-    # print("Cube's orientation is : " + str(orientation))
-    # print("Cube's linear velocity is : " + str(linear_velocity))
-    # we have control over stepping physics and rendering in this workflow
-    # things run in sync
-
     jetbot_articulation_controller = jetbot_robot.get_articulation_controller()
     # Adding a physics callback to send the actions to apply actions with every
     # physics step executed.
-
     send_robot_actions= jetbot_articulation_controller.apply_action(ArticulationAction(joint_positions=None,joint_efforts=None,   joint_velocities=5 * np.random.rand(2,)))
-
     # world.add_physics_callback("sending_actions", callback_fn=send_robot_actions(jetbot_articulation_controller))
     world.add_physics_callback("sending_actions", callback_fn=send_robot_actions)
                                                                         
@@ -101,7 +68,6 @@ for i in range(500):
 # Keep the app running
 while simulation_app.is_running():
     simulation_app.update()
-
 
 # Shutdown and exit
 # omni.timeline.get_timeline_interface().stop()
