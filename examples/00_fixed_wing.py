@@ -25,6 +25,7 @@ from omni.isaac.core.world import World
 # Import the Pegasus API for simulating drones
 from pegasus.simulator.params import ROBOTS, SIMULATION_ENVIRONMENTS
 from pegasus.simulator.logic.vehicles.multirotor import Multirotor, MultirotorConfig
+from pegasus.simulator.logic.vehicles.fixedwing import Fixedwing, FixedwingConfig
 # from pegasus.simulator.logic.vehicles.vehicle import Vehicle
 from pegasus.simulator.logic.vehicles.vehicle_new import Vehicle
 
@@ -78,6 +79,23 @@ class PegasusApp:
         #     Kr=[2.0, 2.0, 2.0]
         # )]
 
+        config_fixedwing = FixedwingConfig()
+        # config_fixedwing.backends = [NonlinearController(
+        #     trajectory_file=self.curr_dir + "/trajectories/pitch_relay_90_deg_2.csv",
+        #     results_file=self.curr_dir + "/results/single_statistics.npz",
+        #     Ki=[0.5, 0.5, 0.5],
+        #     Kr=[2.0, 2.0, 2.0]
+        # )]
+        # config_fixedwing.backends = None
+
+        Fixedwing(
+            "/World/fixedwing",
+            ROBOTS["fixed-wing"],
+            0,
+            [2.3, -1.5, 0.07],
+            Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),
+            config=config_fixedwing,
+        )
         # Multirotor(
         #     "/World/quadrotor1",
         #     ROBOTS['Cube'],
@@ -91,7 +109,8 @@ class PegasusApp:
         # self.world.scene.add(Robot(prim_path="/World/Fancy_Robot2", name="fancy_robot2"))
 
 
-        Vehicle(stage_prefix="/World/fixedwing", usd_path=ROBOTS['fixed-wing'])
+        # Vehicle(stage_prefix="/World/fixedwing", usd_path=ROBOTS['fixed-wing'])
+        
 
         # Reset the simulation environment so that all articulations (aka robots) are initialized
         self.world.reset()
