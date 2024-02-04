@@ -1,7 +1,6 @@
 """
-| File: linear_lift.py
-| Author: Mohammadreza Mousaei (mmousaei@andrew.cmu.edu)
-| Description: Computes the forces that should actuate on a rigidbody affected by linear lift
+| File: lift.py
+| Description: Lift force on body
 | License: BSD-3-Clause. Copyright (c) 2023. All rights reserved.
 """
 import numpy as np
@@ -28,15 +27,17 @@ class Lift(Aerodynamics):
             are expressed in the body frame of the rigid body (using the FRU frame convention).
         """
 
-        # Initialize the base Lift class
+        # Initialize the Aerodynamics base class
         super().__init__()
 
         # The linear lift coefficients of the vehicle's body frame
         self._lift_coefficients = (lift_coefficients)
-        self._air_density = 1.293
+        self._air_density = 1.225
         # self._wind_surface = 32/4 *1.2 * 0.92
         
-        # self._wind_surface = 1.403569076
+        # self._S = 0.211744609
+        self._S = 1.1
+
 
         # The lift force to apply on the vehicle's body frame
         self._lift_force = np.array([0.0, 0.0, 0.0])
@@ -67,7 +68,7 @@ class Lift(Aerodynamics):
 
         return cl
     
-    def update(self, state: State, pitch, dt: float):
+    def update(self, state: State, dt: float):  # add angle of attack
         """Method that updates the lift force to be applied on the body frame of the vehicle. The total lift force
         applied on the body reference frame (FLU convention) is given by diag(lx,ly,lz) * R' * v
         where v is the velocity of the vehicle expressed in the inertial frame and R' * v = velocity_body_frame
@@ -83,6 +84,12 @@ class Lift(Aerodynamics):
         # Get the velocity of the vehicle expressed in the body frame of reference
         body_vel = state.linear_body_velocity
 
+        Groundspeed = body_vel[0]
+
+        wind_speed = 2 #m/s
+        # TODO --> input wind speed from class Wind
+
+        # TODO --> Calculate true airspeed 
         # self._lift_coefficients = self.get_cl(pitch)
 
         # with open(self.curr_dir+'/wind_surface.txt', 'r') as f:
@@ -94,10 +101,14 @@ class Lift(Aerodynamics):
 
         
 
-        lift = self._lift_coefficients * self._air_density * self._wind_surface * (body_vel[0]**2) / 2
+        lift = 0.5*self._lift_coefficients[0] * self._air_density * self._S * (body_vel[0]**2)
         # lift = 0
         # if (body_vel[0] > 6):
             # lift = 5 * 9.8
         # Compute the component of the lift force to be applied in the body frame
+
+        if lift > 4.5*9.81:
+            lift = 2.5*9.81
+    
         self._lift_force = [0, 0, lift]
         return self._lift_force

@@ -1,39 +1,64 @@
 """
 | File: drag.py
-| Author: Marcelo Jacinto (marcelo.jacinto@tecnico.ulisboa.pt)
-| Description: Base interface used to implement forces that should actuate on a rigidbody such as linear drag
-| License: BSD-3-Clause. Copyright (c) 2023, Marcelo Jacinto. All rights reserved.
+| Description: Drag force on body
+| License: BSD-3-Clause. Copyright (c) 2023. All rights reserved.
 """
+import numpy as np
+from pegasus.simulator.logic.dynamics.aerodynamics import Aerodynamics
 from pegasus.simulator.logic.state import State
+from scipy.io import loadmat
+from scipy.interpolate import interp1d
+import os
+from pathlib import Path
 
-class Drag:
-    """
-    Class that serves as a template for the implementation of Drag forces that actuate on a rigid body
-    """
 
-    def __init__(self):
+class Drag(Aerodynamics):
+    """
+    Class that will serve as the drag forces acting on the linear body for a fixed wing 
+    """    
+
+    def __init__(self, drag_coefficient=[0.03]):
         """
-        Receives as input the drag coefficients of the vehicle as a 3x1 vector of constants
+        Receives as input the drag coefficients of the vehicle 
+
+        Args:
+            drag_coefficients (list[float]): 
         """
+
+        # Inititialize Aerodynamics base class 
+        super().__init__()
+
+        self._drag_coefficient = (drag_coefficient)
+        self._air_density = 1.225
+        self._S = 1.1
+
+        self._drag_force = np.array([0.0, 0.0, 0.0])
+        self.curr_dir = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve())
 
     @property
-    def drag(self):
+    def force(self):
         """The drag force to be applied on the body frame of the vehicle
 
         Returns:
             list: A list with len==3 containing the drag force to be applied on the rigid body according to a FLU body reference
-            frame, expressed in Newton (N) [dx, dy, dz]
+            frame, expressed in Newton (N) [lx, ly, lz]
         """
-        return [0.0, 0.0, 0.0]
+        return self._drag_force
 
-    def update(self, state: State, dt: float):
-        """Method that should be implemented to update the drag force to be applied on the body frame of the vehicle
 
-        Args:
-            state (State): The current state of the vehicle.
-             dt (float): The time elapsed between the previous and current function calls (s).
+    """
+    #TODO: get CD function
+    """
 
-        Returns:
-            list: A list with len==3 containing the drag force to be applied on the rigid body according to a FLU body reference
-        """
-        return [0.0, 0.0, 0.0]
+    def update(self, state: State, dt: float):  # TODO make dependent on aoa
+
+        body_vel = state.linear_body_velocity
+
+        drag = 0.5*self._drag_coefficient[0] * self._air_density * self._S * (body_vel[0]**2)
+
+        self._drag_force = [0,0, drag]
+
+        return self._drag_force
+    
+
+

@@ -41,3 +41,9 @@ _build
 build/
 install/
 log/
+
+# Textures for USD environments
+**/textures/**
+
+*.usd 
+**/Worlds/**

@@ -64,45 +64,31 @@ class PegasusApp:
         self.world = self.pg.world
 
         # Launch one of the worlds provided by NVIDIA
-        self.pg.load_environment(SIMULATION_ENVIRONMENTS["Curved Gridroom"])
+        # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Curved Gridroom"])
+        self.pg.load_environment(SIMULATION_ENVIRONMENTS["Default Environment"])
+
 
         # Get the current directory used to read trajectories and save results
         self.curr_dir = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve())
 
-        # Create the vehicle 1
-        # # Try to spawn the selected robot in the world to the specified namespace
-        # config_multirotor1 = MultirotorConfig()
-        # config_multirotor1.backends = [NonlinearController(
-        #     trajectory_file=self.curr_dir + "/trajectories/pitch_relay_90_deg_2.csv",
-        #     results_file=self.curr_dir + "/results/single_statistics.npz",
-        #     Ki=[0.5, 0.5, 0.5],
-        #     Kr=[2.0, 2.0, 2.0]
-        # )]
-
         config_fixedwing = FixedwingConfig()
-        # config_fixedwing.backends = [NonlinearController(
-        #     trajectory_file=self.curr_dir + "/trajectories/pitch_relay_90_deg_2.csv",
-        #     results_file=self.curr_dir + "/results/single_statistics.npz",
-        #     Ki=[0.5, 0.5, 0.5],
-        #     Kr=[2.0, 2.0, 2.0]
-        # )]
-        # config_fixedwing.backends = None
-
+        config_fixedwing.backends = []
+   
         Fixedwing(
             "/World/fixedwing",
-            ROBOTS["fixed-wing"],
+            ROBOTS["Iris2"],
             0,
-            [2.3, -1.5, 0.07],
+            [2.3, -1.5, 10],
             Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),
             config=config_fixedwing,
         )
-        # Multirotor(
+        # Fixedwing(
         #     "/World/quadrotor1",
-        #     ROBOTS['Cube'],
+        #     ROBOTS['fixed-wing_new'],
         #     0,
         #     [2.3, -1.5, 0.07],
         #     Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),
-        #     config=config_multirotor1,
+        #     config=config_fixedwing,
         # )
 
         # add_reference_to_stage(usd_path=ROBOTS["fixed-wing"], prim_path="/World/Fancy_Robot2")

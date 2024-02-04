@@ -26,9 +26,17 @@ CONFIG_FILE = ROOT + "/pegasus.simulator/config/configs.yaml"
 # Define the Extension Assets Path
 ASSET_PATH = ROOT + "/pegasus.simulator/pegasus/simulator/assets"
 ROBOTS_ASSETS = ASSET_PATH + "/Robots"
+WORLD_ASSETS = ASSET_PATH + "/Worlds"
 
 # Define the built in robots of the extension
-ROBOTS = {"Iris": ROBOTS_ASSETS + "/Iris/iris.usd", "Plane": ROBOTS_ASSETS+"/plane/VTOL/scene.usdc", "Cube": ROBOTS_ASSETS + "/Flying Cube/cube_new.usd", "fixed-wing": ROBOTS_ASSETS + "/fixedwing/fixedwing.usd"} #, "Flying Cube": ROBOTS_ASSETS + "/iris_cube.usda"}
+ROBOTS = {"Iris": ROBOTS_ASSETS + "/Iris/iris.usd",
+    "Iris2": ROBOTS_ASSETS + "/Iris/iris4.usd",
+    "fw": ROBOTS_ASSETS + "/fixedwing/fixedwing_edited2.usd",
+    "Cube": ROBOTS_ASSETS + "/Flying Cube/cube_new.usd",
+    "fixed-wing": ROBOTS_ASSETS + "/fixedwing/fixedwing.usd",
+    "fixed-wing_new": ROBOTS_ASSETS + "/fixedwing/fixedwing_v3.usd",
+    "flying-wing": ROBOTS_ASSETS + "/fixedwing/flyingwing/flyingwing_v1.usd",
+    "fixed-wing_final": ROBOTS_ASSETS + "/fixedwing/new_fixedwing/fixedwing_v3.usd"} #, "Flying Cube": ROBOTS_ASSETS + "/iris_cube.usda"}
 
 # Setup the default simulation environments path
 NVIDIA_ASSETS_PATH = str(nucleus.get_assets_root_path())
@@ -54,6 +62,10 @@ OMNIVERSE_ENVIRONMENTS = {
     "Exhibition Hall": "omniverse://localhost/NVIDIA/Assets/Scenes/Templates/Interior/ZetCG_ExhibitionHall.usd"
 }
 
+LOCAL_ENVIRONMENTS = {"Base": WORLD_ASSETS + "/Base.usd",
+                      "Campus": WORLD_ASSETS + "/campus/campus1.usd",
+                      }
+
 SIMULATION_ENVIRONMENTS = {}
 
 # Add the Isaac Sim assets to the list
@@ -65,6 +77,9 @@ for asset in NVIDIA_SIMULATION_ENVIRONMENTS:
 # Add the omniverse assets to the list
 for asset in OMNIVERSE_ENVIRONMENTS:
     SIMULATION_ENVIRONMENTS[asset] = OMNIVERSE_ENVIRONMENTS[asset]
+
+for asset in LOCAL_ENVIRONMENTS:
+    SIMULATION_ENVIRONMENTS[asset] = LOCAL_ENVIRONMENTS[asset]
 
 # Define the default settings for the simulation environment
 DEFAULT_WORLD_SETTINGS = {"physics_dt": 1.0 / 250.0, "stage_units_in_meters": 1.0, "rendering_dt": 1.0 / 60.0}

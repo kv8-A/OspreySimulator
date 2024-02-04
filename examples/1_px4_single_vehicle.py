@@ -62,6 +62,7 @@ class PegasusApp:
         printer = SIMULATION_ENVIRONMENTS["Curved Gridroom"]
         print_to_file(printer)
         self.pg.load_environment(SIMULATION_ENVIRONMENTS["Curved Gridroom"])
+        # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Campus"])
         # self.pg.load_environment("/home/kjell/Documents/Repositories/PegasusSimulator/extensions/pegasus.simulator/pegasus/simulator/assets/Worlds/Lisbon.usd")
 
         # Create the vehicle
@@ -78,7 +79,7 @@ class PegasusApp:
 
         Multirotor(
             "/World/quadrotor",   #Sets unique indentifier for simulated environmnent.
-            ROBOTS['Plane'],
+            ROBOTS['Iris'],
             0,
             [0.0, 0.0, 0.07],
             Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),

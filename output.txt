@@ -5,3 +5,8 @@ http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022
 http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.0/Isaac/Environments/Grid/gridroom_curved.usd
 http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.0/Isaac/Environments/Grid/gridroom_curved.usd
 http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.0/Isaac/Environments/Grid/gridroom_curved.usd
+http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.1/Isaac/Environments/Grid/gridroom_curved.usd
+http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.1/Isaac/Environments/Grid/gridroom_curved.usd
+http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.1/Isaac/Environments/Grid/gridroom_curved.usd
+http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.1/Isaac/Environments/Grid/gridroom_curved.usd
+http://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/2022.2.1/Isaac/Environments/Grid/gridroom_curved.usd

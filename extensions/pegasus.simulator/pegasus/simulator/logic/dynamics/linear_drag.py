@@ -5,10 +5,11 @@
 | License: BSD-3-Clause. Copyright (c) 2023, Marcelo Jacinto. All rights reserved.
 """
 import numpy as np
-from pegasus.simulator.logic.dynamics.drag import Drag
+# from pegasus.simulator.logic.dynamics.drag_old import Drag
+from pegasus.simulator.logic.dynamics.aerodynamics import Aerodynamics
 from pegasus.simulator.logic.state import State
 
-class LinearDrag(Drag):
+class LinearDrag(Aerodynamics):
     """
     Class that implements linear drag computations afftecting a rigid body. It inherits the Drag base class.
     """

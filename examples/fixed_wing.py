@@ -11,7 +11,7 @@ import numpy as np
 import carb
 from omni.isaac.core.utils.nucleus import get_assets_root_path
 from omni.isaac.core.utils.stage import add_reference_to_stage
-from omni.isaac.core.robots import Robot
+from omni.isaac.core.robots import Robot, RobotView
 import carb
 from pegasus.simulator.params import ROBOTS, SIMULATION_ENVIRONMENTS
 from pegasus.simulator.logic.vehicles.vehicle import Vehicle
@@ -44,12 +44,16 @@ world.scene.add_default_ground_plane()
 
 
 #### FIXED WING ADD
-add_reference_to_stage(usd_path=ROBOTS["fixed-wing"], prim_path="/World/Fancy_Robot2")
+add_reference_to_stage(usd_path=ROBOTS["flying-wing"], prim_path="/World/Fancy_Robot2")
 fixedwing_robot = world.scene.add(Robot(prim_path="/World/Fancy_Robot2", name="fancy_robot2"))
 
-dof_fix = fixedwing_robot.num_dof
+# add_reference_to_stage(usd_path=ROBOTS["fixed-wing"], prim_path="/World/Fancy_Robot3")
+# fixedwing_robot2 = world.scene.add(RobotView(prim_path="/World/Fancy_Robot3", name="fancy_robot3"))
+
+
+# dof_fix = fixedwing_robot.num_dof
 # pos_fix = fixedwing_robot.get_joint_postitions()
-print(dof_fix)
+# print(dof_fix)
 # print(pos_fix)
 # Print info
 
@@ -63,7 +67,7 @@ world.reset()
 # print(dof)
 # print(pos)
 
-dof_fix = fixedwing_robot.num_dof
+# dof_fix = fixedwing_robot.num_dof
 # pos_fix = fixedwing_robot.get_joint_postitions()
 
 # def send_robot_actions(jetbot_articulation_controller):
@@ -98,6 +102,9 @@ for i in range(500):
                                                                         
                                                                          
     world.step(render=True) # execute one physics step and one rendering step
+
+
+
 
 # Keep the app running
 while simulation_app.is_running():
