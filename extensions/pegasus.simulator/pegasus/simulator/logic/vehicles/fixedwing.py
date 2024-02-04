@@ -9,14 +9,14 @@ import numpy as np
 
 # The vehicle interface
 from pegasus.simulator.logic.vehicles.vehicle_new import Vehicle
-
+from scipy.spatial.transform import Rotation
 # Mavlink interface
 from pegasus.simulator.logic.backends.mavlink_backend import MavlinkBackend
 
 # Sensors and dynamics setup
-from pegasus.simulator.logic.dynamics import LinearDrag
+from pegasus.simulator.logic.dynamics import LinearDrag, Lift, Drag, Thrust
 from pegasus.simulator.logic.thrusters import QuadraticThrustCurve
-from pegasus.simulator.logic.sensors import Barometer, IMU, Magnetometer, GPS
+from pegasus.simulator.logic.sensors import Barometer, IMU, Magnetometer, GPS, Airspeed, HeadingIndicator
 from pegasus.simulator.logic.interface.pegasus_interface import PegasusInterface
 
 class FixedwingConfig:
@@ -37,10 +37,12 @@ class FixedwingConfig:
 
         # The default thrust curve for a quadrotor and dynamics relating to drag
         self.thrust_curve = QuadraticThrustCurve()
-        self.drag = LinearDrag([0.50, 0.30, 0.0])
+        self.drag = Drag([0.05])
+        self.lift = Lift()
+        self.thrust = Thrust()
 
         # The default sensors for a quadrotor
-        self.sensors = [Barometer(), IMU(), Magnetometer(), GPS()]
+        self.sensors = [Barometer(), IMU(), Magnetometer(), GPS(), HeadingIndicator()] #, Airspeed()]
 
         # The backends for actually sending commands to the vehicle. By default use mavlink (with default mavlink configurations)
         # [Can be None as well, if we do not desired to use PX4 with this simulated vehicle]. It can also be a ROS2 backend
@@ -89,6 +91,9 @@ class Fixedwing(Vehicle):
         # Get the thrust curve of the vehicle from the configuration
         self._thrusters = config.thrust_curve
         self._drag = config.drag
+        self._lift = config.lift
+        self._thrust = config.thrust
+        
 
 
         # 4. Save the backend interface (if given in the configuration of the multirotor)
@@ -157,35 +162,44 @@ class Fixedwing(Vehicle):
         # Get the articulation root of the vehicle
         articulation = self._world.dc_interface.get_articulation(self._stage_prefix)
 
-        # # Get the desired angular velocities for each rotor from the first backend (can be mavlink or other) expressed in rad/s
-        # if len(self._backends) != 0:
-        #     desired_rotor_velocities = self._backends[0].input_reference()
-        # else:
-        #     desired_rotor_velocities = [0.0 for i in range(self._thrusters._num_rotors)]
-
-        # Input the desired rotor velocities in the thruster model
-        # self._thrusters.set_input_reference(desired_rotor_velocities)
-
-        # Get the desired forces to apply to the vehicle
-        # forces_z, _, rolling_moment = self._thrusters.update(self._state, dt)
-
-        # # Apply force to each rotor
-        # for i in range(4):
-
-        #     # Apply the force in Z on the rotor frame
-        #     self.apply_force([0.0, 0.0, forces_z[i]], body_part="/rotor" + str(i))
-
-        #     # Generate the rotating propeller visual effect
-        #     self.handle_propeller_visual(i, forces_z[i], articulation)
-
-        # # Apply the torque to the body frame of the vehicle that corresponds to the rolling moment
-        # self.apply_torque([0.0, 0.0, rolling_moment], "/body")
-
         # Compute the total linear drag force to apply to the vehicle's body frame
         drag = self._drag.update(self._state, dt)
-        self.apply_force(drag, body_part="/base_link")   #drag is a 1x3 array
-        self.apply_force([5,0,0], body_part="/base_link") # [x,y,z]
-        self.apply_force([0,0,50], body_part="/base_link")
+        lift = self._lift.update(self._state, dt )
+        thrust = self._thrust.update(self._state, dt)
+
+        # self.apply_force(drag, body_part="/base_link")   #drag is a 1x3 array
+        # self.apply_force([10,0,0], body_part="/base_link") # [x,y,z]
+
+        # self.apply_force(drag, body_part="/fuselage_link")   #drag is a 1x3 array
+        # self.apply_force([10,0,0], body_part="/fuselage_link") # [x,y,z] # some kind of thrust 
+        self.apply_force(drag, body_part="/body")   #drag is a 1x3 array
+        # self.apply_force([20,0,0], body_part="/body") # [x,y,z] # some kind of thrust 
+        self.apply_force(thrust, body_part="/body") # [x,y,z] #hrust 
+
+        # Apply Lift. TODO: fix distribution as well as small altitude controller
+        self.apply_force(lift,body_part="/body")
+        # self.apply_force([0,0,24.525],body_part="/body")
+
+        position = self.state.position
+        lin_vel = self.state.linear_velocity
+        lin_body_vel = self.state.linear_body_velocity
+        attitude = self.state.attitude
+        
+        euler_att = self.state.attitude_eul
+
+        # print("Position", position)
+        # print("lin velL ", lin_vel)
+        print("lin_body_vel", lin_body_vel)
+   
+        print("attitude ", attitude)
+        print("attitude euler: ", euler_att)
+
+
+        # print("Lift:", lift[2])
+        # print("Thrust:", thrust[0])
+        # self.apply_force(lift,body_part="/fuselage_link")
+        # self.apply_force(0.35*np.array(lift), body_part="/horizontal_tail_link")
+        # self.apply_force([0,0,50], body_part="/base_link")
         # Call the update methods in all backends
         for backend in self._backends:
             backend.update(dt)
@@ -195,6 +209,7 @@ class Fixedwing(Vehicle):
         self.update_sensors(dt)
         # print(self._sensors)
         observations = self._sensors
+        print("HI: ", observations[4].state["Heading:"])
     # def handle_propeller_visual(self, rotor_number, force: float, articulation):
     #     """
     #     Auxiliar method used to set the joint velocity of each rotor (for animation purposes) based on the 

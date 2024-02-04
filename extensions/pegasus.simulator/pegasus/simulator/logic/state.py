@@ -37,6 +37,9 @@ class State:
         # equates to the quaternion=[0, 0, 0, 1]
         self.attitude = np.array([0.0, 0.0, 0.0, 1.0])
 
+        # Attitude expressed in euler angles. 
+        self.attitude_eul = np.array([0.0, 0.0, 0.0])
+
         # The linear velocity [u,v,w] of the vehicle's body frame expressed in the body frame of reference
         self.linear_body_velocity = np.array([0.0, 0.0, 0.0])
 
@@ -48,6 +51,8 @@ class State:
 
         # The linear acceleration [ax, ay, az] of the vehicle's body frame relative to the inertial frame, expressed in the inertial frame
         self.linear_acceleration = np.array([0.0, 0.0, 0.0])
+
+        
 
     def get_position_ned(self):
         """
