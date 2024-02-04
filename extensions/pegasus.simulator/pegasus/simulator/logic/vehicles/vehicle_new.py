@@ -11,7 +11,7 @@ from scipy.spatial.transform import Rotation
 
 # Low level APIs
 import carb
-from pxr import Usd, Gf
+from pxr import Usd, Gf, UsdPhysics
 
 # High level Isaac sim APIs
 import omni.usd
@@ -109,6 +109,23 @@ class Vehicle(Robot):
         # be implemented in classes that inherit the vehicle object
         self._world.add_physics_callback(self._stage_prefix + "/update", self.update)
 
+        # Set the vehicle mass 
+        self._mass = 1.5
+        prim_mass = self._world.stage.GetPrimAtPath(self._stage_prefix + "/body")
+        
+        mass_body = UsdPhysics.MassAPI.Apply(prim_mass)
+        if mass_body.GetMassAttr().Get() != self._mass: # gives you the current mass
+            mass_body.GetMassAttr().Set(self._mass)
+
+        prim_mass1 = self._world.stage.GetPrimAtPath(self._stage_prefix + "/rotor0")
+        mass_body1 = UsdPhysics.MassAPI.Apply(prim_mass1)
+        if mass_body1.GetMassAttr().Get() != 0.01: # gives you the current mass
+            mass_body1.GetMassAttr().Set(0.01)
+
+   
+    
+
+        # TODO Set rotor mass so that it is ok
         # Set the flag that signals if the simulation is running or not
         self._sim_running = False
 
@@ -200,13 +217,13 @@ class Vehicle(Robot):
         """
 
         # Get the body frame interface of the vehicle (this will be the frame used to get the position, orientation, etc.)
-        body = self._world.dc_interface.get_rigid_body(self._stage_prefix +"/base_link")
+        body = self._world.dc_interface.get_rigid_body(self._stage_prefix +"/body")  # use base_link for fixedwing & body for Iris
 
         # Get the current position and orientation in the inertial frame
         pose = self._world.dc_interface.get_rigid_body_pose(body)
 
         # Get the attitude according to the convention [w, x, y, z]
-        prim = self._world.stage.GetPrimAtPath(self._stage_prefix + "/base_link")
+        prim = self._world.stage.GetPrimAtPath(self._stage_prefix + "/body")
         rotation_quat = get_world_transform_xform(prim).GetQuaternion()
         rotation_quat_real = rotation_quat.GetReal()
         rotation_quat_img = rotation_quat.GetImaginary()
@@ -228,6 +245,10 @@ class Vehicle(Robot):
         self._state.attitude = np.array(
             [rotation_quat_img[0], rotation_quat_img[1], rotation_quat_img[2], rotation_quat_real]
         )
+
+        # Get the attitude in Euler angles. --> Can be used for heading 
+        rot = Rotation.from_quat(self._state.attitude) 
+        self._state.attitude_eul = rot.as_euler('zyx')
 
         # Express the velocity of the vehicle in the inertial frame X_dot = [x_dot, y_dot, z_dot]
         self._state.linear_velocity = np.array(linear_vel)
