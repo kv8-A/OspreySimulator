@@ -123,9 +123,7 @@ class Vehicle(Robot):
             mass_body1.GetMassAttr().Set(0.01)
 
    
-    
 
-        # TODO Set rotor mass so that it is ok
         # Set the flag that signals if the simulation is running or not
         self._sim_running = False
 

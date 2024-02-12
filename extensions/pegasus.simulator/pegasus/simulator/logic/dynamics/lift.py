@@ -5,6 +5,8 @@
 """
 import numpy as np
 from pegasus.simulator.logic.dynamics.aerodynamics import Aerodynamics
+from pegasus.simulator.logic.backends.controller.states import AngleOfAttack
+
 from pegasus.simulator.logic.state import State
 from scipy.io import loadmat
 from scipy.interpolate import interp1d
@@ -36,8 +38,8 @@ class Lift(Aerodynamics):
         # self._wind_surface = 32/4 *1.2 * 0.92
         
         # self._S = 0.211744609
-        self._S = 1.1
-
+        self._S = 0.2589
+        # self.aoa = AngleOfAttack()
 
         # The lift force to apply on the vehicle's body frame
         self._lift_force = np.array([0.0, 0.0, 0.0])
@@ -54,17 +56,28 @@ class Lift(Aerodynamics):
         return self._lift_force
 
     def get_cl(self, alpha):
-        data = loadmat(self.curr_dir+'/C_l.mat')  # Load .mat file
-        cl_data = data['C_l'].ravel()  # Assuming 'C_l' is a 1D array in the .mat file
+        # data = loadmat(self.curr_dir+'/C_l.mat')  # Load .mat file
+        # cl_data = data['C_l'].ravel()  # Assuming 'C_l' is a 1D array in the .mat file
 
-        alpha_points = np.concatenate([np.arange(-8.5, 14, 0.25), [14.5, 14.75, 15]])
+        # alpha_points = np.concatenate([np.arange(-8.5, 14, 0.25), [14.5, 14.75, 15]])
 
     
-        # Create an interpolation function based on the input data
-        f = interp1d(alpha_points, cl_data, kind='nearest', fill_value='extrapolate')
+        # # Create an interpolation function based on the input data
+        # f = interp1d(alpha_points, cl_data, kind='nearest', fill_value='extrapolate')
 
-        # Use the function to interpolate the input alpha
-        cl = f(alpha)
+        # # Use the function to interpolate the input alpha
+        # cl = f(alpha)
+
+        # example :  cl-1.2 at 10 deg, cl = 0.14 at 0deg. alphazero = -1.5 deg --> a0 = (1.2-0.14)/(10-0) = 0.106
+        # a = a0/(1+57.3*a0/(pi e AR)) = 0.088 per degree
+        a = 0.088 # per deg 
+        alphazero = -1.5 # deg
+
+        cl = a * (alpha - alphazero) 
+
+
+        if alpha > 12:
+            cl = 1.2
 
         return cl
     
@@ -83,32 +96,38 @@ class Lift(Aerodynamics):
 
         # Get the velocity of the vehicle expressed in the body frame of reference
         body_vel = state.linear_body_velocity
-
-        Groundspeed = body_vel[0]
-
-        wind_speed = 2 #m/s
-        # TODO --> input wind speed from class Wind
-
-        # TODO --> Calculate true airspeed 
-        # self._lift_coefficients = self.get_cl(pitch)
-
-        # with open(self.curr_dir+'/wind_surface.txt', 'r') as f:
-        #     content = f.read()
-        # self._wind_surface = float(content)
-        # with open(self.curr_dir+'/lift_coeff.txt', 'r') as f:
-        #     content = f.read()
-        # self._lift_coefficients = float(content)
-
+        euler_angle = state.attitude_eul[0]
+        euler_angle = np.rad2deg(euler_angle)*-1
+        groundspeed = body_vel[0]
         
+        airspeed = self.caculate_airspeed(groundspeed,euler_angle)
 
-        lift = 0.5*self._lift_coefficients[0] * self._air_density * self._S * (body_vel[0]**2)
-        # lift = 0
-        # if (body_vel[0] > 6):
-            # lift = 5 * 9.8
-        # Compute the component of the lift force to be applied in the body frame
 
-        if lift > 4.5*9.81:
-            lift = 2.5*9.81
+        # # with open(self.curr_dir+'/wind_surface.txt', 'r') as f:
+        # #     content = f.read()
+        # # self._wind_surface = float(content)
+        # # with open(self.curr_dir+'/lift_coeff.    alpha = self.aoa.get_aoa()
+
+
+        # # self._lift_coefficients = float(content)
+
+        # if airspeed < 0:
+        #     airspeed = 0
+        aoa = AngleOfAttack() # TODO check if most efficient 
+        # alpha = self.aoa.get_aoa()
+        alpha = aoa.get_aoa()
+        print("alpha: ", alpha)
+
+        cl = self.get_cl(alpha)
+        print("cl: ", cl)
+
+        # lift = 0.5*self._lift_coefficients[0] * self._air_density * self._S * (airspeed**2)
+
+        lift = 0.5*cl * self._air_density * self._S * (airspeed**2)
+
+
+        # if lift > 4.5*9.81:
+        #     lift = 2.5*9.81
     
         self._lift_force = [0, 0, lift]
         return self._lift_force

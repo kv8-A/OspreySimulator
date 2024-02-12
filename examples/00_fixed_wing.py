@@ -14,7 +14,7 @@ from omni.isaac.kit import SimulationApp
 # Start Isaac Sim's simulation environment
 # Note: this simulation app must be instantiated right after the SimulationApp import, otherwise the simulator will crash
 # as this is the object that will load all the extensions and load the actual simulator.
-simulation_app = SimulationApp({"headless": False})
+simulation_app = SimulationApp({"headless": True})
 
 # -----------------------------------
 # The actual script should start here
@@ -65,7 +65,11 @@ class PegasusApp:
 
         # Launch one of the worlds provided by NVIDIA
         # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Curved Gridroom"])
-        self.pg.load_environment(SIMULATION_ENVIRONMENTS["Default Environment"])
+        self.pg.load_environment(SIMULATION_ENVIRONMENTS["Default Environment"]) # Check coordinate system
+
+        # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Campus"])  
+        #TODO if enviromnent is campus. Scale to right size. Check right size. 
+
 
 
         # Get the current directory used to read trajectories and save results
@@ -78,7 +82,7 @@ class PegasusApp:
             "/World/fixedwing",
             ROBOTS["Iris2"],
             0,
-            [2.3, -1.5, 10],
+            [2.3, -1.5, 22],
             Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),
             config=config_fixedwing,
         )

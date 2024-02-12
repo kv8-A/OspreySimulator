@@ -19,6 +19,9 @@ from pegasus.simulator.logic.thrusters import QuadraticThrustCurve
 from pegasus.simulator.logic.sensors import Barometer, IMU, Magnetometer, GPS, Airspeed, HeadingIndicator
 from pegasus.simulator.logic.interface.pegasus_interface import PegasusInterface
 
+# Control
+from pegasus.simulator.logic.backends.controller import HeadingHoldMode , AltitudeHoldMode
+
 class FixedwingConfig:
     """
     A data class that is used for configuring a Multirotor
@@ -48,6 +51,9 @@ class FixedwingConfig:
         # [Can be None as well, if we do not desired to use PX4 with this simulated vehicle]. It can also be a ROS2 backend
         # or your own custom Backend implementation!
         self.backends = [MavlinkBackend()]
+        self.controls = [HeadingHoldMode(), AltitudeHoldMode()]
+        # self.controls = [HeadingHoldMode()]
+
 
 
 class Fixedwing(Vehicle):
@@ -94,6 +100,8 @@ class Fixedwing(Vehicle):
         self._lift = config.lift
         self._thrust = config.thrust
         
+        self._hhm = config.controls[0]
+        self._ahm = config.controls[1]
 
 
         # 4. Save the backend interface (if given in the configuration of the multirotor)
@@ -161,6 +169,26 @@ class Fixedwing(Vehicle):
 
         # Get the articulation root of the vehicle
         articulation = self._world.dc_interface.get_articulation(self._stage_prefix)
+        
+        
+        for backend in self._backends:
+            backend.update(dt)
+
+        # import control before updating the forces... Otherwise they get update with wrong values.
+        altitude = self.state.position[2]
+        self._ahm.update(altitude, dt)
+
+        # Sensor stuff 
+        self.update_sensors(dt)
+        # print(self._sensors)
+        observations = self._sensors
+        # print("HI: ", observations[4].state["Heading:"])
+
+        HI_ref = 90
+        HI_m = observations[4].state["Heading:"]
+
+        yaw_moment = self._hhm.update(HI_ref, HI_m)
+        # print("Yaw MOment: ", yaw_moment)
 
         # Compute the total linear drag force to apply to the vehicle's body frame
         drag = self._drag.update(self._state, dt)
@@ -170,7 +198,7 @@ class Fixedwing(Vehicle):
         # self.apply_force(drag, body_part="/base_link")   #drag is a 1x3 array
         # self.apply_force([10,0,0], body_part="/base_link") # [x,y,z]
 
-        # self.apply_force(drag, body_part="/fuselage_link")   #drag is a 1x3 array
+  
         # self.apply_force([10,0,0], body_part="/fuselage_link") # [x,y,z] # some kind of thrust 
         self.apply_force(drag, body_part="/body")   #drag is a 1x3 array
         # self.apply_force([20,0,0], body_part="/body") # [x,y,z] # some kind of thrust 
@@ -178,7 +206,11 @@ class Fixedwing(Vehicle):
 
         # Apply Lift. TODO: fix distribution as well as small altitude controller
         self.apply_force(lift,body_part="/body")
-        # self.apply_force([0,0,24.525],body_part="/body")
+
+        # self.apply_force([0,0,20.0],body_part="/body")
+
+        # self.apply_torque([0.0,0.0,0.005], body_part="/body")
+        # self.apply_torque([0.0,0.0,yaw_moment], body_part="/body")
 
         position = self.state.position
         lin_vel = self.state.linear_velocity
@@ -186,13 +218,20 @@ class Fixedwing(Vehicle):
         attitude = self.state.attitude
         
         euler_att = self.state.attitude_eul
-
+        
+        print("THrust:: ", thrust)
+        print("Forward velocity: ", lin_body_vel[0])
+        print("Drag, " , drag)
+        print("Lift: ", lift)
+        
+        print("altitude: ", position[2])
+        # print(dt)
         # print("Position", position)
-        # print("lin velL ", lin_vel)
-        print("lin_body_vel", lin_body_vel)
+        # # print("lin velL ", lin_vel)
+        # print("lin_body_vel", lin_body_vel)
    
-        print("attitude ", attitude)
-        print("attitude euler: ", euler_att)
+        # print("attitude ", attitude)
+        # print("attitude euler: ", euler_att)
 
 
         # print("Lift:", lift[2])
@@ -201,15 +240,10 @@ class Fixedwing(Vehicle):
         # self.apply_force(0.35*np.array(lift), body_part="/horizontal_tail_link")
         # self.apply_force([0,0,50], body_part="/base_link")
         # Call the update methods in all backends
-        for backend in self._backends:
-            backend.update(dt)
 
 
-        # Sensor stuff 
-        self.update_sensors(dt)
-        # print(self._sensors)
-        observations = self._sensors
-        print("HI: ", observations[4].state["Heading:"])
+
+        # Implement Heading Hold Mode. Heading Indicator needed. 
     # def handle_propeller_visual(self, rotor_number, force: float, articulation):
     #     """
     #     Auxiliar method used to set the joint velocity of each rotor (for animation purposes) based on the 
