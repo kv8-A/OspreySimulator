@@ -23,10 +23,12 @@ class PIDController:
         self.kd = kd  # Derivative gain
         self.previous_error = 0.0
         self.integral = 0.0
+        self.derivative = 0.0 # Comment out after testing
 
     def compute_PID(self, error, delta_time):
         self.integral += error * delta_time
         derivative = (error - self.previous_error) / delta_time if delta_time > 0 else 0
+        self.derivative = derivative # comment out after testing.
         output = (self.kp * error) + (self.ki * self.integral) + (self.kd * derivative)
         self.previous_error = error
         return output
@@ -40,7 +42,7 @@ class AltitudeHoldMode():
 
         self.current_altitude = 0.0  # Initialize altitude variable 
 
-        self.aoa = AngleOfAttack()
+        # self.aoa = AngleOfAttack()
 
         self.ref_altitude = 30.0
 
@@ -48,24 +50,48 @@ class AltitudeHoldMode():
 
         self._physics_dt = DEFAULT_WORLD_SETTINGS["physics_dt"]
 
-        self.kp = 0.1  # Proportional gain
+        self.kp = 0.01  # Proportional gain
         self.ki = 0.0  # Integral gain
-        self.kd = 0.0  # Derivative gain
+        self.kd = 0.01  # Derivative gain
 
         self.controller = PIDController(self.kp,self.ki,self.kd)
 
-        self.alphadot_max = 2 # deg/s
+        self.alphadot_max = 10 # deg/s  # 4 works, however, some overshoot due to low changability 10 better & realistic
+
 
     # inner loop alpha
     
-    def update_aoa(self, aoa, aoa_adjustment):
-        return
+    # def update_aoa(self, aoa, aoa_adjustment):
+    #     return
         
+    # def V_adjusted_aoa_delta(self,aoa_delta, zdot):
+    #     return
 
-    def update(self, current_altitude, dt):
+
+    def update(self, current_altitude, dt, aoa,zdot):
         h_e = self.ref_altitude - current_altitude
 
-        aoa_delta = self.controller.compute_PID(h_e, dt)
+        zdot_m = zdot
+        kpz = 0.25
+        zdot_ref = h_e*kpz 
+        if h_e > 0: 
+
+            zdot_ref = max(min(zdot_ref, 5.0),0)
+
+        elif h_e < 0:
+            zdot_ref = min(max(zdot_ref, -5.0),0)
+
+        zdot_e = zdot_ref - zdot_m
+
+        aoa_delta = self.controller.compute_PID(zdot_e,dt)
+
+
+
+        # aoa_delta = self.controller.compute_PID(h_e, dt)
+        # aoa_delta = aoa_delta * self._physics_dt
+        # print("proportional error: ", h_e)
+        # print("integral error", self.controller.integral)
+        # print("Derivative error: ", self.controller.derivative)
 
         if aoa_delta > 0:
             aoa_delta = min(aoa_delta, self.alphadot_max*self._physics_dt)
@@ -75,7 +101,10 @@ class AltitudeHoldMode():
 
         print("Angle of attack delta", aoa_delta)
 
-        aoa = self.aoa.get_aoa()
+        
+
+        # aoa = self.aoa.get_aoa()
+        aoa = aoa
         new_aoa = aoa + aoa_delta
         new_aoa = max(min(new_aoa, 12.2), -5.0)
 
@@ -90,7 +119,8 @@ class AltitudeHoldMode():
         #     new_aoa = aoa
         print("angle of attack: ", new_aoa)
 
-        self.aoa.set_angle_of_attack(new_aoa)
+        # self.aoa.set_angle_of_attack(new_aoa)
+        return new_aoa
 
 
         
@@ -117,6 +147,8 @@ in simulation step is dt=0.004
 #         output = (self.kp * error) + (self.ki * self.integral) + (self.kd * derivative)
 #         self.previous_error = error
 #         return output
+
+
 
 # class AltitudeHoldMode:
 #     def __init__(self, desired_altitude, kp, ki, kd):

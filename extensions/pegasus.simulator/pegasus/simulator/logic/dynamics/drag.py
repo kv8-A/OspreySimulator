@@ -17,7 +17,7 @@ class Drag(Aerodynamics):
     Class that will serve as the drag forces acting on the linear body for a fixed wing 
     """    
 
-    def __init__(self, drag_coefficient=[0.03]):
+    def __init__(self, drag_coefficient=[0.05]):
         """
         Receives as input the drag coefficients of the vehicle 
 

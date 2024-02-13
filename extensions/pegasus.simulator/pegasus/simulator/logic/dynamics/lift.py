@@ -81,7 +81,7 @@ class Lift(Aerodynamics):
 
         return cl
     
-    def update(self, state: State, dt: float):  # add angle of attack
+    def update(self, state: State, dt: float, aoa):  # add angle of attack
         """Method that updates the lift force to be applied on the body frame of the vehicle. The total lift force
         applied on the body reference frame (FLU convention) is given by diag(lx,ly,lz) * R' * v
         where v is the velocity of the vehicle expressed in the inertial frame and R' * v = velocity_body_frame
@@ -113,9 +113,10 @@ class Lift(Aerodynamics):
 
         # if airspeed < 0:
         #     airspeed = 0
-        aoa = AngleOfAttack() # TODO check if most efficient 
+        # aoa = AngleOfAttack() # TODO check if most efficient 
+        alpha = aoa
         # alpha = self.aoa.get_aoa()
-        alpha = aoa.get_aoa()
+        # alpha = aoa.get_aoa()
         print("alpha: ", alpha)
 
         cl = self.get_cl(alpha)

@@ -21,6 +21,7 @@ from pegasus.simulator.logic.interface.pegasus_interface import PegasusInterface
 
 # Control
 from pegasus.simulator.logic.backends.controller import HeadingHoldMode , AltitudeHoldMode
+from pegasus.simulator.logic.backends.controller.states import AngleOfAttack
 
 class FixedwingConfig:
     """
@@ -53,11 +54,12 @@ class FixedwingConfig:
         self.backends = [MavlinkBackend()]
         self.controls = [HeadingHoldMode(), AltitudeHoldMode()]
         # self.controls = [HeadingHoldMode()]
+        self.states = [AngleOfAttack()]
 
 
 
 class Fixedwing(Vehicle):
-    """Multirotor class - It defines a base interface for creating a multirotor
+    """Fixedwing class - It defines a base interface for creating a multirotor
     """
     def __init__(
         self,
@@ -70,7 +72,7 @@ class Fixedwing(Vehicle):
         init_orientation=[0.0, 0.0, 0.0, 1.0],
         config=FixedwingConfig(),
     ):
-        """Initializes the multirotor object
+        """Initializes the fixedwing object
 
         Args:
             stage_prefix (str): The name the vehicle will present in the simulator when spawned. Defaults to "quadrotor".
@@ -100,9 +102,12 @@ class Fixedwing(Vehicle):
         self._lift = config.lift
         self._thrust = config.thrust
         
+        #setup the controls of the systems
         self._hhm = config.controls[0]
         self._ahm = config.controls[1]
 
+        #setup the states of the system 
+        self.aoa = config.states[0]
 
         # 4. Save the backend interface (if given in the configuration of the multirotor)
         # and initialize them
@@ -110,7 +115,7 @@ class Fixedwing(Vehicle):
         for backend in self._backends:
             backend.initialize(self)
 
-        # Add a callbacks for the
+        # Add a callbacks for the 
         self._world.add_physics_callback(self._stage_prefix + "/mav_state", self.update_sim_state)
 
     def update_sensors(self, dt: float):
@@ -157,6 +162,9 @@ class Fixedwing(Vehicle):
         for backend in self._backends:
             backend.stop()
 
+        # This resets the angle of attack when the simulation has been reset in the UI
+        self.aoa.reset() # Has to be done as this is self made and not part of the isaac sim. 
+
     def update(self, dt: float):
         """
         Method that computes and applies the forces to the vehicle in simulation based on the motor speed. 
@@ -174,9 +182,13 @@ class Fixedwing(Vehicle):
         for backend in self._backends:
             backend.update(dt)
 
+        aoa = self.aoa.get_aoa()
         # import control before updating the forces... Otherwise they get update with wrong values.
         altitude = self.state.position[2]
-        self._ahm.update(altitude, dt)
+        zdot = self.state.linear_body_velocity[2]
+        new_aoa = self._ahm.update(altitude, dt, aoa,zdot)
+        self.aoa.set_angle_of_attack(new_aoa)
+        aoa = self.aoa.get_aoa()
 
         # Sensor stuff 
         self.update_sensors(dt)
@@ -192,7 +204,7 @@ class Fixedwing(Vehicle):
 
         # Compute the total linear drag force to apply to the vehicle's body frame
         drag = self._drag.update(self._state, dt)
-        lift = self._lift.update(self._state, dt )
+        lift = self._lift.update(self._state, dt, aoa)
         thrust = self._thrust.update(self._state, dt)
 
         # self.apply_force(drag, body_part="/base_link")   #drag is a 1x3 array
@@ -221,6 +233,7 @@ class Fixedwing(Vehicle):
         
         print("THrust:: ", thrust)
         print("Forward velocity: ", lin_body_vel[0])
+        print("Upward Velocity: ", lin_body_vel[2] )
         print("Drag, " , drag)
         print("Lift: ", lift)
         

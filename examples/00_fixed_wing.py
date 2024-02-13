@@ -42,6 +42,7 @@ import os
 from pathlib import Path
 
 
+
 class PegasusApp:
     """
     A Template class that serves as an example on how to build a simple Isaac Sim standalone App.

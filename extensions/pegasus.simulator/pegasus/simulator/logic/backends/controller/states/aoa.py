@@ -7,8 +7,8 @@ class AngleOfAttack():
     def __init__(self):
         
         # Initialize with a defaullt angle of attack
-
-        self.angle_of_attack = 12.2 # angle in deg
+        self.initial_aoa = 8.0
+        self.angle_of_attack = 8.0 # angle in deg
         self.min_aoa = 0.0
         self.max_aoa = 0.0 # set max on highest Cl, to start.
 
@@ -27,3 +27,5 @@ class AngleOfAttack():
     def get_aoa(self):
         return self.angle_of_attack
     
+    def reset(self):
+        self.angle_of_attack = self.initial_aoa 

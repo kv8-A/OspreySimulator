@@ -29,7 +29,7 @@ class Thrust(Aerodynamics):
         super().__init__()
 
         # Parameters
-        self.throttle = 0.7
+        self.throttle = 0.6
         self._air_density = 1.225
         self._electric_power = 20 #W 
         self._propeller_efficiency = 0.9

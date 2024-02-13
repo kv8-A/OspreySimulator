@@ -127,7 +127,7 @@ class Vehicle(Robot):
         # Set the flag that signals if the simulation is running or not
         self._sim_running = False
 
-        # Add a callback to start/stop of the simulation once the play/stop button is hit
+        # Add a callback to start/stop of the simulation once the play/stop button is hit --> This line lets us reset certain self made sates etc... #TODO write better
         self._world.add_timeline_callback(self._stage_prefix + "/start_stop_sim", self.sim_start_stop)
 
     def __del__(self):
@@ -169,6 +169,7 @@ class Vehicle(Robot):
             self._sim_running = True
             self.start()
 
+        # Stop methods needs to be overwritten in fixedwing class. concept of Polymorphism in OOP.
         if self._world.is_stopped() and self._sim_running == True:
             self._sim_running = False
             self.stop()
@@ -272,6 +273,7 @@ class Vehicle(Robot):
     def stop(self):
         """
         Method that should be implemented by the class that inherits the vehicle object.
+        Plymorphism concept of OOP
         """
         pass
 

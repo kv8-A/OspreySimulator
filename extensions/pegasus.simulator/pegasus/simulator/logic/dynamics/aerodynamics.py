@@ -18,7 +18,7 @@ class Aerodynamics:
         Receives as input the drag coefficients of the vehicle as a 3x1 vector of constants
         """
         self.wind_direction = "N"
-        self.wind_velocity = 2.0
+        self.wind_velocity = 3.0
 
         self._wind = Wind(wind_velocity=self.wind_velocity, direction=self.wind_direction).calculate_wind_vector_components()[0]
         self._windangle = Wind(wind_velocity=self.wind_velocity, direction=self.wind_direction).calculate_wind_vector_components()[1]
