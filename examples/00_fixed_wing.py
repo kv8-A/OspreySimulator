@@ -14,13 +14,14 @@ from omni.isaac.kit import SimulationApp
 # Start Isaac Sim's simulation environment
 # Note: this simulation app must be instantiated right after the SimulationApp import, otherwise the simulator will crash
 # as this is the object that will load all the extensions and load the actual simulator.
-simulation_app = SimulationApp({"headless": True})
+simulation_app = SimulationApp({"headless": False})
 
 # -----------------------------------
 # The actual script should start here
 # -----------------------------------
 import omni.timeline
 from omni.isaac.core.world import World
+from omni.isaac.core import SimulationContext
 
 # Import the Pegasus API for simulating drones
 from pegasus.simulator.params import ROBOTS, SIMULATION_ENVIRONMENTS
@@ -83,9 +84,10 @@ class PegasusApp:
             "/World/fixedwing",
             ROBOTS["Iris2"],
             0,
-            [2.3, -1.5, 22],
+            [2.3, -1.5, 2],
             Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),
             config=config_fixedwing,
+            datalogger=True
         )
         # Fixedwing(
         #     "/World/quadrotor1",
@@ -113,13 +115,14 @@ class PegasusApp:
 
         # Start the simulation
         self.timeline.play()
-
+        step = 0
         # The "infinite" loop
         while simulation_app.is_running():
 
             # Update the UI of the app and perform the physics step
+            # print("Top_step: ", step)
             self.world.step(render=True)
-        
+            step+=1
         # Cleanup and stop
         carb.log_warn("PegasusApp Simulation App is closing.")
         self.timeline.stop()

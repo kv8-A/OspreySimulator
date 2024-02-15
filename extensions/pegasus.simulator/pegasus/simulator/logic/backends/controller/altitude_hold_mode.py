@@ -50,9 +50,9 @@ class AltitudeHoldMode():
 
         self._physics_dt = DEFAULT_WORLD_SETTINGS["physics_dt"]
 
-        self.kp = 0.01  # Proportional gain
+        self.kp = 0.01  # Proportional gain   #0.01 works fine together with 0.01 for derivative control, no integral
         self.ki = 0.0  # Integral gain
-        self.kd = 0.01  # Derivative gain
+        self.kd = 0.01  # Derivative gain  # kp 0.01, ki 0.01, kd 0.03 -> more oscillation
 
         self.controller = PIDController(self.kp,self.ki,self.kd)
 

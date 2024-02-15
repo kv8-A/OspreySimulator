@@ -6,6 +6,7 @@
 """
 
 import numpy as np
+from pegasus.simulator.validation import SimulationDataLogger
 
 # The vehicle interface
 from pegasus.simulator.logic.vehicles.vehicle_new import Vehicle
@@ -71,6 +72,7 @@ class Fixedwing(Vehicle):
         init_pos=[0.0, 0.0, 0.07],
         init_orientation=[0.0, 0.0, 0.0, 1.0],
         config=FixedwingConfig(),
+        datalogger= False,
     ):
         """Initializes the fixedwing object
 
@@ -118,6 +120,11 @@ class Fixedwing(Vehicle):
         # Add a callbacks for the 
         self._world.add_physics_callback(self._stage_prefix + "/mav_state", self.update_sim_state)
 
+        # Add the simulation datalogger class
+        self.logger = SimulationDataLogger() if datalogger else None
+        self.step = 0.0 # --> delete later
+        self.time = 0.0 # --> deleta later
+
     def update_sensors(self, dt: float):
         """Callback that is called at every physics steps and will call the sensor.update method to generate new
         sensor data. For each data that the sensor generates, the backend.update_sensor method will also be called for
@@ -164,6 +171,11 @@ class Fixedwing(Vehicle):
 
         # This resets the angle of attack when the simulation has been reset in the UI
         self.aoa.reset() # Has to be done as this is self made and not part of the isaac sim. 
+        self.time = 0.0
+        self.step = 0.0
+        if self.logger is not None:
+            filepath = "extensions/pegasus.simulator/pegasus/simulator/validation/controller_val"
+            self.logger.save_to_csv(filepath+"/simulation_data.csv")
 
     def update(self, dt: float):
         """
@@ -185,6 +197,8 @@ class Fixedwing(Vehicle):
         aoa = self.aoa.get_aoa()
         # import control before updating the forces... Otherwise they get update with wrong values.
         altitude = self.state.position[2]
+        print("altitude: ", altitude)
+        
         zdot = self.state.linear_body_velocity[2]
         new_aoa = self._ahm.update(altitude, dt, aoa,zdot)
         self.aoa.set_angle_of_attack(new_aoa)
@@ -210,7 +224,8 @@ class Fixedwing(Vehicle):
         # self.apply_force(drag, body_part="/base_link")   #drag is a 1x3 array
         # self.apply_force([10,0,0], body_part="/base_link") # [x,y,z]
 
-  
+        if self.step < 3:
+            self.apply_force([500,0,0])
         # self.apply_force([10,0,0], body_part="/fuselage_link") # [x,y,z] # some kind of thrust 
         self.apply_force(drag, body_part="/body")   #drag is a 1x3 array
         # self.apply_force([20,0,0], body_part="/body") # [x,y,z] # some kind of thrust 
@@ -238,15 +253,24 @@ class Fixedwing(Vehicle):
         print("Lift: ", lift)
         
         print("altitude: ", position[2])
+
+        print("acceleration: ",self.state.linear_acceleration[2])
         # print(dt)
+        # Call the update methods in all backends
         # print("Position", position)
         # # print("lin velL ", lin_vel)
         # print("lin_body_vel", lin_body_vel)
    
         # print("attitude ", attitude)
         # print("attitude euler: ", euler_att)
+        time = self._world._timeline.get_current_time()
+        print("Time: ",time)
 
-
+        self.time += dt
+        print("Time 2: ", self.time)
+        
+        self.step += 1
+        print("step: ",self.step)
         # print("Lift:", lift[2])
         # print("Thrust:", thrust[0])
         # self.apply_force(lift,body_part="/fuselage_link")
@@ -254,8 +278,14 @@ class Fixedwing(Vehicle):
         # self.apply_force([0,0,50], body_part="/base_link")
         # Call the update methods in all backends
 
+        # # Implement the datalogger class 
+        if self.logger is not None: 
+            current_time = self.time
+            self.logger.log(self.time,altitude)
 
 
+        self.time += dt
+        print("Time 2: ", self.time)
         # Implement Heading Hold Mode. Heading Indicator needed. 
     # def handle_propeller_visual(self, rotor_number, force: float, articulation):
     #     """

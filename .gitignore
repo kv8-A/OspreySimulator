@@ -47,3 +47,7 @@ log/
 
 *.usd 
 **/Worlds/**
+
+# Data Files
+
+*.csv
