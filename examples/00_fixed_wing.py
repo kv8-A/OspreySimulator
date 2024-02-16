@@ -14,7 +14,7 @@ from omni.isaac.kit import SimulationApp
 # Start Isaac Sim's simulation environment
 # Note: this simulation app must be instantiated right after the SimulationApp import, otherwise the simulator will crash
 # as this is the object that will load all the extensions and load the actual simulator.
-simulation_app = SimulationApp({"headless": False})
+simulation_app = SimulationApp({"headless": True})
 
 # -----------------------------------
 # The actual script should start here
@@ -84,10 +84,10 @@ class PegasusApp:
             "/World/fixedwing",
             ROBOTS["Iris2"],
             0,
-            [2.3, -1.5, 2],
+            [2.3, -1.5, 22],
             Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),
             config=config_fixedwing,
-            datalogger=True
+            datalogger=False
         )
         # Fixedwing(
         #     "/World/quadrotor1",

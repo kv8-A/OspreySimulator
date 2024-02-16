@@ -28,7 +28,7 @@ class PIDController:
     def compute_PID(self, error, delta_time):
         self.integral += error * delta_time
         derivative = (error - self.previous_error) / delta_time if delta_time > 0 else 0
-        self.derivative = derivative # comment out after testing.
+        # self.derivative = derivative # comment out after testing.
         output = (self.kp * error) + (self.ki * self.integral) + (self.kd * derivative)
         self.previous_error = error
         return output
@@ -99,7 +99,7 @@ class AltitudeHoldMode():
         if aoa_delta < 0: 
             aoa_delta = max(aoa_delta, -self.alphadot_max*self._physics_dt)
 
-        print("Angle of attack delta", aoa_delta)
+        # print("Angle of attack delta", aoa_delta)
 
         
 
@@ -117,7 +117,7 @@ class AltitudeHoldMode():
         #     new_aoa = -5.0
         # else:
         #     new_aoa = aoa
-        print("angle of attack: ", new_aoa)
+        # print("angle of attack: ", new_aoa)
 
         # self.aoa.set_angle_of_attack(new_aoa)
         return new_aoa

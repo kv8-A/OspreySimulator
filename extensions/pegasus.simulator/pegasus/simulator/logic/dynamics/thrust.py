@@ -36,7 +36,7 @@ class Thrust(Aerodynamics):
         self._S_prop = 0.0314  # Sunyou code 
         self._prop_velocity = 20
         self._prop_rpm_max = 12000 # Source Maxon Motor 
-        self._prop_k = 0.05
+        self._prop_k = 0.025
 
         
 
@@ -65,7 +65,7 @@ class Thrust(Aerodynamics):
         return Ve
 
 
-    def update(self, state: State, dt: float):
+    def update(self, state: State, dt: float, throttle):
 
         linear_vel = state.linear_velocity[0]
 
@@ -76,7 +76,8 @@ class Thrust(Aerodynamics):
 
         Va = self.caculate_airspeed(groundspeed,euler_angle)
 
-        Ve = self.propellor_velocity(self.throttle, self._prop_rpm_max)
+        # Ve = self.propellor_velocity(self.throttle, self._prop_rpm_max)
+        Ve = self.propellor_velocity(throttle, self._prop_rpm_max)
 
         # prop_thrust = self._air_density * np.pi /4 * self._S_prop**2 *(linear_vel + 0.5 *self._prop_velocity)*self._prop_velocity
         # prop_thrust = self._air_density *  self._S_prop *(linear_vel + 0.5 *self._prop_velocity)*self._prop_velocity

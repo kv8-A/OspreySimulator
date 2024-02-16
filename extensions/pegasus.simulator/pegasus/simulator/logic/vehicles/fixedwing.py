@@ -21,8 +21,8 @@ from pegasus.simulator.logic.sensors import Barometer, IMU, Magnetometer, GPS, A
 from pegasus.simulator.logic.interface.pegasus_interface import PegasusInterface
 
 # Control
-from pegasus.simulator.logic.backends.controller import HeadingHoldMode , AltitudeHoldMode
-from pegasus.simulator.logic.backends.controller.states import AngleOfAttack
+from pegasus.simulator.logic.backends.controller import HeadingHoldMode , AltitudeHoldMode, VelocityHoldMode
+from pegasus.simulator.logic.backends.controller.states import AngleOfAttack, Throttle
 
 class FixedwingConfig:
     """
@@ -53,9 +53,9 @@ class FixedwingConfig:
         # [Can be None as well, if we do not desired to use PX4 with this simulated vehicle]. It can also be a ROS2 backend
         # or your own custom Backend implementation!
         self.backends = [MavlinkBackend()]
-        self.controls = [HeadingHoldMode(), AltitudeHoldMode()]
+        self.controls = [HeadingHoldMode(), AltitudeHoldMode(), VelocityHoldMode()]
         # self.controls = [HeadingHoldMode()]
-        self.states = [AngleOfAttack()]
+        self.states = [AngleOfAttack(), Throttle()]
 
 
 
@@ -107,9 +107,11 @@ class Fixedwing(Vehicle):
         #setup the controls of the systems
         self._hhm = config.controls[0]
         self._ahm = config.controls[1]
+        self._vhm = config.controls[2]
 
         #setup the states of the system 
         self.aoa = config.states[0]
+        self.throttle = config.states[1]
 
         # 4. Save the backend interface (if given in the configuration of the multirotor)
         # and initialize them
@@ -171,6 +173,7 @@ class Fixedwing(Vehicle):
 
         # This resets the angle of attack when the simulation has been reset in the UI
         self.aoa.reset() # Has to be done as this is self made and not part of the isaac sim. 
+        self.throttle.reset()
         self.time = 0.0
         self.step = 0.0
         if self.logger is not None:
@@ -195,15 +198,25 @@ class Fixedwing(Vehicle):
             backend.update(dt)
 
         aoa = self.aoa.get_aoa()
+        throttle = self.throttle.get_throttle()
         # import control before updating the forces... Otherwise they get update with wrong values.
         altitude = self.state.position[2]
-        print("altitude: ", altitude)
+        fwd_acc = self.state.linear_acceleration[0]
+        velocity = self.state.linear_body_velocity[0]
+        # print("altitude: ", altitude)
         
+        # Altitude Hold Mode
         zdot = self.state.linear_body_velocity[2]
         new_aoa = self._ahm.update(altitude, dt, aoa,zdot)
         self.aoa.set_angle_of_attack(new_aoa)
         aoa = self.aoa.get_aoa()
+        cl = self._lift.get_cl(aoa)
 
+        # Velocity Hold Mode
+        throttle_cmd = self._vhm.update(dt, velocity,fwd_acc)
+        throttle = self.throttle.set_throttle(throttle_cmd)
+        throttle = self.throttle.get_throttle()
+        print("Throttle: ", throttle)
         # Sensor stuff 
         self.update_sensors(dt)
         # print(self._sensors)
@@ -217,15 +230,17 @@ class Fixedwing(Vehicle):
         # print("Yaw MOment: ", yaw_moment)
 
         # Compute the total linear drag force to apply to the vehicle's body frame
-        drag = self._drag.update(self._state, dt)
+        drag = self._drag.update(self._state, dt, cl)
         lift = self._lift.update(self._state, dt, aoa)
-        thrust = self._thrust.update(self._state, dt)
+        thrust = self._thrust.update(self._state, dt, throttle)
 
         # self.apply_force(drag, body_part="/base_link")   #drag is a 1x3 array
         # self.apply_force([10,0,0], body_part="/base_link") # [x,y,z]
 
-        if self.step < 3:
-            self.apply_force([500,0,0])
+        # Following two lines as if you throw the drone to start it up
+        # if self.step < 3:
+        #     self.apply_force([500,0,0])
+        
         # self.apply_force([10,0,0], body_part="/fuselage_link") # [x,y,z] # some kind of thrust 
         self.apply_force(drag, body_part="/body")   #drag is a 1x3 array
         # self.apply_force([20,0,0], body_part="/body") # [x,y,z] # some kind of thrust 
@@ -248,13 +263,13 @@ class Fixedwing(Vehicle):
         
         print("THrust:: ", thrust)
         print("Forward velocity: ", lin_body_vel[0])
-        print("Upward Velocity: ", lin_body_vel[2] )
+        # print("Upward Velocity: ", lin_body_vel[2] )
         print("Drag, " , drag)
-        print("Lift: ", lift)
+        # print("Lift: ", lift)
         
         print("altitude: ", position[2])
 
-        print("acceleration: ",self.state.linear_acceleration[2])
+        print("acceleration: ",self.state.linear_acceleration[0])
         # print(dt)
         # Call the update methods in all backends
         # print("Position", position)
@@ -264,13 +279,13 @@ class Fixedwing(Vehicle):
         # print("attitude ", attitude)
         # print("attitude euler: ", euler_att)
         time = self._world._timeline.get_current_time()
-        print("Time: ",time)
+        # print("Time: ",time)
 
         self.time += dt
-        print("Time 2: ", self.time)
+        # print("Time 2: ", self.time)
         
         self.step += 1
-        print("step: ",self.step)
+        # print("step: ",self.step)
         # print("Lift:", lift[2])
         # print("Thrust:", thrust[0])
         # self.apply_force(lift,body_part="/fuselage_link")
@@ -285,7 +300,7 @@ class Fixedwing(Vehicle):
 
 
         self.time += dt
-        print("Time 2: ", self.time)
+        # print("Time 2: ", self.time)
         # Implement Heading Hold Mode. Heading Indicator needed. 
     # def handle_propeller_visual(self, rotor_number, force: float, articulation):
     #     """

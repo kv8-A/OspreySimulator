@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 
+
 class Drag(Aerodynamics):
     """
     Class that will serve as the drag forces acting on the linear body for a fixed wing 
@@ -31,6 +32,7 @@ class Drag(Aerodynamics):
         self._drag_coefficient = (drag_coefficient)
         self._air_density = 1.225
         self._S = 0.2589
+        self.cd0 = 0.015
 
         self._drag_force = np.array([0.0, 0.0, 0.0])
         self.curr_dir = str(Path(os.path.dirname(os.path.realpath(__file__))).resolve())
@@ -49,8 +51,20 @@ class Drag(Aerodynamics):
     """
     #TODO: get CD function
     """
+    def get_cd(self,cl):
+        """
+        Based on the drag formula p443 Introduction to flight John D. Anderson JR.
+        """
 
-    def update(self, state: State, dt: float):  # TODO make dependent on aoa
+        #variables
+        AR = 1.3716/self._S
+        e = 0.9
+
+        cd = self.cd0 + cl**2/(np.pi*e*AR)
+        return cd 
+
+
+    def update(self, state: State, dt: float,cl):  # TODO make dependent on aoa
 
         body_vel = state.linear_body_velocity
         euler_angle = state.attitude_eul[0]
@@ -58,8 +72,10 @@ class Drag(Aerodynamics):
         groundspeed = body_vel[0]
         
         airspeed = self.caculate_airspeed(groundspeed,euler_angle)
-
-        drag = 0.5*self._drag_coefficient[0] * self._air_density * self._S * (airspeed**2)
+        cd = self.get_cd(cl)
+        # print(cd)
+        # drag = 0.5*self._drag_coefficient[0] * self._air_density * self._S * (airspeed**2)
+        drag = 0.5*cd * self._air_density * self._S * (airspeed**2)
 
         self._drag_force = [-drag,0, 0]
 
