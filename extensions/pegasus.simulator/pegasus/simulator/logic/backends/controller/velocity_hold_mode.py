@@ -1,10 +1,14 @@
 """
 This class will contain the velocity hold mode controller
+
+Based on controller design from:   https://www.researchgate.net/publication/267409258_Flight_path_PID_controller_for_propeller-driven_fixed-_wing_unmanned_aerial_vehicles#fullTextFileContent 
+https://www.researchgate.net/publication/257581364_Central_Processing_Unit_for_an_Autopilot_Description_and_Hardware-In-the-Loop_Simulation
+page: 571 of last link is good example of how to test controllers.
 """
 
 import numpy as np
 
-from pegasus.simulator.logic.backends.controller.states import Throttle
+from pegasus.simulator.logic.backends.controller.control_devices import Throttle
 from pegasus.simulator.params import DEFAULT_WORLD_SETTINGS
 
 class PIDController:
@@ -44,7 +48,7 @@ class VelocityHoldMode:
     
     def update(self,dt,current_velocity,current_acc):
         ka = 0.1
-        kc2 = 0.0  #0.5 kinda works but deleting the 
+        kc2 = 0.0  #0.5 kinda works but deleting the feed foward desired velocity makes it work instantly.
         v_e = self.ref_v - current_velocity #- current_acc*ka
 
         output = self.controller.compute_PID(v_e,dt)

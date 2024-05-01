@@ -81,3 +81,20 @@ The work developed by Marcelo Jacinto and João Pinto was supported by Ph.D. gra
   <img src="docs/_static/ist_logo.png" width="200" align="center"/> 
   <img src="docs/_static/logo_fct.png" width="200" align="center"/> 
 </p>
+
+
+# Soaring Simulator 
+
+Install: watch out for isaac sim version
+
+  --> Put link to Isaac install
+
+  --> Explain environments etc , coming from other directory. Blender to USD to 
+
+  --> explain dynamics, fixed vs quadrotor
+
+  --> Camera
+
+  --> Wind field
+
+

@@ -19,7 +19,7 @@ class Lift(Aerodynamics):
     Class that implements linear lift computations affecting a rigid body. It inherits the Lift base class.
     """
 
-    def __init__(self, lift_coefficients=[1.2]):
+    def __init__(self):
         """
         Receives as input the lift coefficients of the vehicle as a 3x1 vector of constants
 
@@ -33,7 +33,7 @@ class Lift(Aerodynamics):
         super().__init__()
 
         # The linear lift coefficients of the vehicle's body frame
-        self._lift_coefficients = (lift_coefficients)
+        # self._lift_coefficients = (lift_coefficients)
         self._air_density = 1.225
         # self._wind_surface = 32/4 *1.2 * 0.92
         
@@ -56,20 +56,7 @@ class Lift(Aerodynamics):
         return self._lift_force
 
     def get_cl(self, alpha):
-        # data = loadmat(self.curr_dir+'/C_l.mat')  # Load .mat file
-        # cl_data = data['C_l'].ravel()  # Assuming 'C_l' is a 1D array in the .mat file
 
-        # alpha_points = np.concatenate([np.arange(-8.5, 14, 0.25), [14.5, 14.75, 15]])
-
-    
-        # # Create an interpolation function based on the input data
-        # f = interp1d(alpha_points, cl_data, kind='nearest', fill_value='extrapolate')
-
-        # # Use the function to interpolate the input alpha
-        # cl = f(alpha)
-
-        # example :  cl-1.2 at 10 deg, cl = 0.14 at 0deg. alphazero = -1.5 deg --> a0 = (1.2-0.14)/(10-0) = 0.106
-        # a = a0/(1+57.3*a0/(pi e AR)) = 0.088 per degree
         a = 0.088 # per deg 
         alphazero = -1.5 # deg
 
@@ -117,10 +104,10 @@ class Lift(Aerodynamics):
         alpha = aoa
         # alpha = self.aoa.get_aoa()
         # alpha = aoa.get_aoa()
-        print("alpha: ", alpha)
+        # print("alpha: ", alpha)
 
         cl = self.get_cl(alpha)
-        print("cl: ", cl)
+        # print("cl: ", cl)
 
         # lift = 0.5*self._lift_coefficients[0] * self._air_density * self._S * (airspeed**2)
 

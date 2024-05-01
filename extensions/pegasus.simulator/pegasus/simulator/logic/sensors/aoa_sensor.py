@@ -1,5 +1,5 @@
 # Anle of Attack sensor.
-
+from pegasus.simulator.logic.sensors.sensor import Sensor
 
 """
 angle of attack class will provide the following. It will select different anlge of attacks. These angle of attacks are 
@@ -30,8 +30,8 @@ class AngleOfAttackSensor(Sensor):
         # state of the sensor
         self._state = {"angle_of_attack:": 0.0}
 
-    def update(self, aoa):
+    def update(self, state: State, dt: float):
 
-        self._state["angle_of_attack:"] = aoa
+        self._state["angle_of_attack:"] = state.angle_of_attack.get_aoa()
         
         

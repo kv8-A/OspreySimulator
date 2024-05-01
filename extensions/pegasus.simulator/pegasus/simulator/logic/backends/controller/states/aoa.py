@@ -1,6 +1,7 @@
 """
 This files contains the class angle of attack which will be feed into the angle of attack sensor.
 """
+from pegasus.simulator.logic.state import State
 
 class AngleOfAttack():
 

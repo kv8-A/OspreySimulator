@@ -10,3 +10,5 @@ from .imu import IMU
 from .magnetometer import Magnetometer
 from .airspeed import Airspeed
 from .heading_indicator import HeadingIndicator
+from .flight_path_sensor import FlightPathAngle
+from .pitch_angle_gyro import PitchAngle

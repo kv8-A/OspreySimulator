@@ -15,14 +15,16 @@ from scipy.spatial.transform import Rotation
 from pegasus.simulator.logic.backends.mavlink_backend import MavlinkBackend
 
 # Sensors and dynamics setup
+from pegasus.simulator.logic.vehicles.state import FixedWingState
 from pegasus.simulator.logic.dynamics import LinearDrag, Lift, Drag, Thrust
 from pegasus.simulator.logic.thrusters import QuadraticThrustCurve
-from pegasus.simulator.logic.sensors import Barometer, IMU, Magnetometer, GPS, Airspeed, HeadingIndicator
+from pegasus.simulator.logic.sensors import Barometer, IMU, Magnetometer, GPS, Airspeed, HeadingIndicator, FlightPathAngle, PitchAngle
 from pegasus.simulator.logic.interface.pegasus_interface import PegasusInterface
 
 # Control
 from pegasus.simulator.logic.backends.controller import HeadingHoldMode , AltitudeHoldMode, VelocityHoldMode
-from pegasus.simulator.logic.backends.controller.states import AngleOfAttack, Throttle
+from pegasus.simulator.logic.backends.controller.states import AngleOfAttack
+from pegasus.simulator.logic.backends.controller.control_devices import Throttle
 
 class FixedwingConfig:
     """
@@ -42,12 +44,12 @@ class FixedwingConfig:
 
         # The default thrust curve for a quadrotor and dynamics relating to drag
         self.thrust_curve = QuadraticThrustCurve()
-        self.drag = Drag([0.05])
+        self.drag = Drag()
         self.lift = Lift()
         self.thrust = Thrust()
 
         # The default sensors for a quadrotor
-        self.sensors = [Barometer(), IMU(), Magnetometer(), GPS(), HeadingIndicator()] #, Airspeed()]
+        self.sensors = [Barometer(), IMU(), Magnetometer(), GPS(), HeadingIndicator(), FlightPathAngle(), PitchAngle()] #, Airspeed()]
 
         # The backends for actually sending commands to the vehicle. By default use mavlink (with default mavlink configurations)
         # [Can be None as well, if we do not desired to use PX4 with this simulated vehicle]. It can also be a ROS2 backend
@@ -88,6 +90,10 @@ class Fixedwing(Vehicle):
         # 1. Initiate the Vehicle object itself
         super().__init__(stage_prefix, usd_file, init_pos, init_orientation)
 
+        self._state = FixedWingState(config.states[0], config.states[1])
+
+        # self._world.add_physics_callback(self._stage_prefix + "/state", self.update_fixedwing_state)
+
         # 2. Initialize all the vehicle sensors
         self._sensors = config.sensors
         for sensor in self._sensors:
@@ -97,6 +103,8 @@ class Fixedwing(Vehicle):
         # and let the sensor decide depending on its internal update rate whether to generate new data
         self._world.add_physics_callback(self._stage_prefix + "/Sensors", self.update_sensors)
 
+        # Initialize fixed wing states
+
         # 3. Setup the dynamics of the system
         # Get the thrust curve of the vehicle from the configuration
         self._thrusters = config.thrust_curve
@@ -105,13 +113,18 @@ class Fixedwing(Vehicle):
         self._thrust = config.thrust
         
         #setup the controls of the systems
-        self._hhm = config.controls[0]
-        self._ahm = config.controls[1]
-        self._vhm = config.controls[2]
+        self._hhm = config.controls[0]      # Heading Hold Mode
+        self._ahm = config.controls[1]      # Altitude Hold Mode
+        self._vhm = config.controls[2]      # Velocity Hold Mode
+
+        # Ref altitude and velocoity
+        self._ahm.ref_altitude = 60
+        # self._vhm.ref_v = 20
+        # TODO setting position and being able to change it during flight
 
         #setup the states of the system 
-        self.aoa = config.states[0]
-        self.throttle = config.states[1]
+        # self.aoa = config.states[0]
+        # self.throttle = config.states[1]
 
         # 4. Save the backend interface (if given in the configuration of the multirotor)
         # and initialize them
@@ -157,6 +170,10 @@ class Fixedwing(Vehicle):
         for backend in self._backends:
             backend.update_state(self._state)
 
+    def update_fixedwing_state(self, dt:float):
+        self._state.update_state(dt)
+        # Now update the angle of attack and the flight path angle so that they are included into the state of the vehicle.
+
     def start(self):
         """
         Intializes the communication with all the backends. This method is invoked automatically when the simulation starts
@@ -172,13 +189,40 @@ class Fixedwing(Vehicle):
             backend.stop()
 
         # This resets the angle of attack when the simulation has been reset in the UI
-        self.aoa.reset() # Has to be done as this is self made and not part of the isaac sim. 
-        self.throttle.reset()
+        self._state.angle_of_attack.reset() # Has to be done as this is self made and not part of the isaac sim. 
+        self._state.throttle.reset()
         self.time = 0.0
         self.step = 0.0
         if self.logger is not None:
             filepath = "extensions/pegasus.simulator/pegasus/simulator/validation/controller_val"
             self.logger.save_to_csv(filepath+"/simulation_data.csv")
+    
+    def update_control(self, dt:float):
+        # aoa = self.aoa.get_aoa()
+        aoa = self._state.angle_of_attack.get_aoa()
+        throttle = self._state.throttle.get_throttle()
+        # throttle = self.throttle.get_throttle()
+        # import control before updating the forces... Otherwise they get update with wrong values.
+        altitude = self.state.position[2]
+        fwd_acc = self.state.linear_acceleration[0]
+        velocity = self.state.linear_body_velocity[0]
+        # print("altitude: ", altitude)
+        
+        # Altitude Hold Mode
+        zdot = self.state.linear_body_velocity[2]
+        new_aoa = self._ahm.update(altitude, dt, aoa,zdot)
+        self._state.angle_of_attack.set_angle_of_attack(new_aoa)
+        # self.aoa.set_angle_of_attack(new_aoa)
+        # aoa = self.aoa.get_aoa()
+        aoa = self._state.angle_of_attack.get_aoa()
+        cl = self._lift.get_cl(aoa)
+
+        # Velocity Hold Mode
+        throttle_cmd = self._vhm.update(dt, velocity,fwd_acc)
+        # throttle = self.throttle.set_throttle(throttle_cmd)
+        self._state.throttle.set_throttle(throttle_cmd)
+        # throttle = self.throttle.get_throttle()
+        
 
     def update(self, dt: float):
         """
@@ -197,28 +241,34 @@ class Fixedwing(Vehicle):
         for backend in self._backends:
             backend.update(dt)
 
-        aoa = self.aoa.get_aoa()
-        throttle = self.throttle.get_throttle()
-        # import control before updating the forces... Otherwise they get update with wrong values.
-        altitude = self.state.position[2]
-        fwd_acc = self.state.linear_acceleration[0]
-        velocity = self.state.linear_body_velocity[0]
-        # print("altitude: ", altitude)
-        
-        # Altitude Hold Mode
-        zdot = self.state.linear_body_velocity[2]
-        new_aoa = self._ahm.update(altitude, dt, aoa,zdot)
-        self.aoa.set_angle_of_attack(new_aoa)
-        aoa = self.aoa.get_aoa()
+        self.update_control(dt)
+        aoa = self._state.angle_of_attack.get_aoa()
+        throttle = self._state.throttle.get_throttle()  
         cl = self._lift.get_cl(aoa)
 
-        # Velocity Hold Mode
-        throttle_cmd = self._vhm.update(dt, velocity,fwd_acc)
-        throttle = self.throttle.set_throttle(throttle_cmd)
-        throttle = self.throttle.get_throttle()
-        print("Throttle: ", throttle)
-        # Sensor stuff 
-        self.update_sensors(dt)
+        # aoa = self.aoa.get_aoa()
+        # throttle = self.throttle.get_throttle()
+
+        # # import control before updating the forces... Otherwise they get update with wrong values.
+        altitude = self.state.position[2]
+        # fwd_acc = self.state.linear_acceleration[0]
+        # velocity = self.state.linear_body_velocity[0]
+        # # print("altitude: ", altitude)
+        
+        # # Altitude Hold Mode
+        # zdot = self.state.linear_body_velocity[2]
+        # new_aoa = self._ahm.update(altitude, dt, aoa,zdot)
+        # self.aoa.set_angle_of_attack(new_aoa)
+        # aoa = self.aoa.get_aoa()
+        # cl = self._lift.get_cl(aoa)
+
+        # # Velocity Hold Mode
+        # throttle_cmd = self._vhm.update(dt, velocity,fwd_acc)
+        # throttle = self.throttle.set_throttle(throttle_cmd)
+        # throttle = self.throttle.get_throttle()
+        # print("Throttle: ", throttle)
+        # # Sensor stuff 
+        self.update_sensors(dt)  # Important that this is done after the control update.
         # print(self._sensors)
         observations = self._sensors
         # print("HI: ", observations[4].state["Heading:"])

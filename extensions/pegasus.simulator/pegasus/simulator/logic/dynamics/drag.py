@@ -18,7 +18,7 @@ class Drag(Aerodynamics):
     Class that will serve as the drag forces acting on the linear body for a fixed wing 
     """    
 
-    def __init__(self, drag_coefficient=[0.05]):
+    def __init__(self):
         """
         Receives as input the drag coefficients of the vehicle 
 
@@ -29,7 +29,7 @@ class Drag(Aerodynamics):
         # Inititialize Aerodynamics base class 
         super().__init__()
 
-        self._drag_coefficient = (drag_coefficient)
+
         self._air_density = 1.225
         self._S = 0.2589
         self.cd0 = 0.015
