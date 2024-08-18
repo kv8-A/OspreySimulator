@@ -87,7 +87,7 @@ class Lift(Aerodynamics):
         euler_angle = np.rad2deg(euler_angle)*-1
         groundspeed = body_vel[0]
         
-        airspeed = self.caculate_airspeed(groundspeed,euler_angle)
+        airspeed = self.caculate_airspeed(groundspeed,euler_angle, state)
 
 
         # # with open(self.curr_dir+'/wind_surface.txt', 'r') as f:

@@ -1,5 +1,6 @@
 # Anle of Attack sensor.
 from pegasus.simulator.logic.sensors.sensor import Sensor
+from pegasus.simulator.logic.state import State
 
 """
 angle of attack class will provide the following. It will select different anlge of attacks. These angle of attacks are 

@@ -63,7 +63,9 @@ OMNIVERSE_ENVIRONMENTS = {
 }
 
 LOCAL_ENVIRONMENTS = {"Base": WORLD_ASSETS + "/Base.usd",
-                      "Campus": WORLD_ASSETS + "/campus/campus1.usd",
+                      "Campus": WORLD_ASSETS + "/campus/campus_Final.usd",   #campus1.usd
+                      "Lisbon": WORLD_ASSETS + "/old_pegasus/Lisbon.usd",
+                      "Random_world": WORLD_ASSETS + "/random_world/random_field.usd",
                       }
 
 SIMULATION_ENVIRONMENTS = {}

@@ -54,12 +54,13 @@ class HeadingIndicator(Sensor):
         attitude_angle = state.attitude_eul[0]
         attitude_angle = np.rad2deg(attitude_angle)
 
+        # transform the isaac attitude angles to aircraft heading angles
         if attitude_angle <= 0:
-            attitude_angle = attitude_angle * -1
+            heading_angle = attitude_angle * -1
         else:
-            attitude_angle = 360-attitude_angle
+            heading_angle = 360-attitude_angle
 
-        self._state = {"Heading:": attitude_angle}
+        self._state = {"Heading:": heading_angle}
 
         return self._state
     

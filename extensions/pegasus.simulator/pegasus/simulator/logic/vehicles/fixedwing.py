@@ -118,7 +118,7 @@ class Fixedwing(Vehicle):
         self._vhm = config.controls[2]      # Velocity Hold Mode
 
         # Ref altitude and velocoity
-        self._ahm.ref_altitude = 60
+        self._ahm.ref_altitude = 20
         # self._vhm.ref_v = 20
         # TODO setting position and being able to change it during flight
 
@@ -270,6 +270,9 @@ class Fixedwing(Vehicle):
         # # Sensor stuff 
         self.update_sensors(dt)  # Important that this is done after the control update.
         # print(self._sensors)
+        print("Angle of attack", aoa)
+        print("Pitch Angle", self._sensors[6].state["pitch_angle"])
+        print("FlightpathAngle", self._sensors[5].state["flight_path_angle"] )
         observations = self._sensors
         # print("HI: ", observations[4].state["Heading:"])
 

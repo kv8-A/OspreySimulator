@@ -15,7 +15,9 @@ class AngleOfAttack():
 
     def set_angle_of_attack(self,angle):
         self.angle_of_attack = angle
-        
+    
+    # TODO adjust angle of attack for relative airflow over wing... 
+    # TODO adjust for difference between real aoa and induced aoa
     
     def aoa_rad2deg(self):
         """

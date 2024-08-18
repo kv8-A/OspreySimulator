@@ -74,7 +74,7 @@ class Thrust(Aerodynamics):
         euler_angle = np.rad2deg(euler_angle)*-1
         groundspeed = body_vel[0]
 
-        Va = self.caculate_airspeed(groundspeed,euler_angle)
+        Va = self.caculate_airspeed(groundspeed,euler_angle, state)
 
         # Ve = self.propellor_velocity(self.throttle, self._prop_rpm_max)
         Ve = self.propellor_velocity(throttle, self._prop_rpm_max)

@@ -71,7 +71,7 @@ class Drag(Aerodynamics):
         euler_angle = np.rad2deg(euler_angle)*-1
         groundspeed = body_vel[0]
         
-        airspeed = self.caculate_airspeed(groundspeed,euler_angle)
+        airspeed = self.caculate_airspeed(groundspeed,euler_angle, state)
         cd = self.get_cd(cl)
         # print(cd)
         # drag = 0.5*self._drag_coefficient[0] * self._air_density * self._S * (airspeed**2)
