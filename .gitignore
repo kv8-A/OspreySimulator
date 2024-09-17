@@ -47,6 +47,7 @@ log/
 
 *.usd 
 **/Worlds/**
+**/WindFields/**
 
 # Data Files
 *.png

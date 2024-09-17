@@ -63,6 +63,10 @@ class Thrust(Aerodynamics):
         Ve = omega * np.sqrt(self._S_prop/np.pi) 
 
         return Ve
+    
+    def propeller_thrust(self, Ve, Va):
+        f_thrust = 0.5 * self._air_density * self._S_prop * (Ve**2 - Va**2) * self._prop_k
+        return f_thrust
 
 
     def update(self, state: State, dt: float, throttle):

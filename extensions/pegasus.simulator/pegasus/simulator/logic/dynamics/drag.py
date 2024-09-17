@@ -57,7 +57,7 @@ class Drag(Aerodynamics):
         """
 
         #variables
-        AR = 1.3716/self._S
+        AR = 1.3716**2/self._S
         e = 0.9
 
         cd = self.cd0 + cl**2/(np.pi*e*AR)
@@ -73,7 +73,7 @@ class Drag(Aerodynamics):
         
         airspeed = self.caculate_airspeed(groundspeed,euler_angle, state)
         cd = self.get_cd(cl)
-        # print(cd)
+        print("drag coefficien", cd)
         # drag = 0.5*self._drag_coefficient[0] * self._air_density * self._S * (airspeed**2)
         drag = 0.5*cd * self._air_density * self._S * (airspeed**2)
 

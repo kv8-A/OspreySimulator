@@ -102,11 +102,11 @@ class AltitudeHoldMode():
         # print("Angle of attack delta", aoa_delta)
 
         
-
+        # TODO Set self.max_aoa and self.min_aoa
         # aoa = self.aoa.get_aoa()
         aoa = aoa
         new_aoa = aoa + aoa_delta
-        new_aoa = max(min(new_aoa, 12.2), -5.0)
+        new_aoa = max(min(new_aoa, 16.2), -5.0)
 
         # new_aoa = max(min(new_aoa, MAX_AOA), MIN_AOA)
         # if aoa <12.2:

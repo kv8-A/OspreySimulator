@@ -19,7 +19,7 @@ class Aerodynamics:
         """
         # Check how to best typcheck this # TODO 
         self.wind_direction = "N"
-        self.wind_velocity = 3.0
+        self.wind_velocity = 0.0
 
         self._wind = Wind(wind_velocity=self.wind_velocity, direction=self.wind_direction).calculate_wind_vector_components()[0]
         self._windangle = Wind(wind_velocity=self.wind_velocity, direction=self.wind_direction).calculate_wind_vector_components()[1]

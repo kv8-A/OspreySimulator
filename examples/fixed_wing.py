@@ -44,8 +44,8 @@ world.scene.add_default_ground_plane()
 
 
 #### FIXED WING ADD
-add_reference_to_stage(usd_path=ROBOTS["flying-wing"], prim_path="/World/Fancy_Robot2")
-fixedwing_robot = world.scene.add(Robot(prim_path="/World/Fancy_Robot2", name="fancy_robot2"))
+# add_reference_to_stage(usd_path=ROBOTS["flying-wing"], prim_path="/World/Fancy_Robot2")
+# fixedwing_robot = world.scene.add(Robot(prim_path="/World/Fancy_Robot2", name="fancy_robot2"))
 
 # add_reference_to_stage(usd_path=ROBOTS["fixed-wing"], prim_path="/World/Fancy_Robot3")
 # fixedwing_robot2 = world.scene.add(RobotView(prim_path="/World/Fancy_Robot3", name="fancy_robot3"))

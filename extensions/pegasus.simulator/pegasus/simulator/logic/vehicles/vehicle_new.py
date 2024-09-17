@@ -110,7 +110,7 @@ class Vehicle(Robot):
         self._world.add_physics_callback(self._stage_prefix + "/update", self.update)
 
         # Set the vehicle mass 
-        self._mass = 1.5
+        self._mass = 1.0
         prim_mass = self._world.stage.GetPrimAtPath(self._stage_prefix + "/body")
         
         mass_body = UsdPhysics.MassAPI.Apply(prim_mass)

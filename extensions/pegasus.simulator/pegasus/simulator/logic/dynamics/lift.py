@@ -63,8 +63,8 @@ class Lift(Aerodynamics):
         cl = a * (alpha - alphazero) 
 
 
-        if alpha > 12:
-            cl = 1.2
+        if alpha > 16:
+            cl = 1.65
 
         return cl
     

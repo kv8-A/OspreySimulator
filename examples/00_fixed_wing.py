@@ -69,7 +69,8 @@ class PegasusApp:
         # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Curved Gridroom"])
         # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Default Environment"]) # TODO Check coordinate system
 
-        self.pg.load_environment(SIMULATION_ENVIRONMENTS["Campus"])  
+        # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Campus"])  
+        self.pg.load_environment(SIMULATION_ENVIRONMENTS["TU Delft"])  
         # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Random_world"])  
         #TODO if enviromnent is campus. Scale to right size. Check right size. 
 
@@ -83,10 +84,12 @@ class PegasusApp:
    
         Fixedwing(
             "/World/fixedwing",
-            ROBOTS["Iris2"],
+            # ROBOTS["Iris2"],
+            ROBOTS["IrisFinal"],
             0,
-            [2.3, -1.5, 22],
-            Rotation.from_euler("XYZ", [0.0, 0.0, 0.0], degrees=True).as_quat(),
+            # [2.3, -1.5, 22],
+            [444.6, -474.0, 30],
+            Rotation.from_euler("XYZ", [0.0, 0.0,112.0], degrees=True).as_quat(),
             config=config_fixedwing,
             datalogger=True
         )

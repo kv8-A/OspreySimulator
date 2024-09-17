@@ -31,6 +31,7 @@ WORLD_ASSETS = ASSET_PATH + "/Worlds"
 # Define the built in robots of the extension
 ROBOTS = {"Iris": ROBOTS_ASSETS + "/Iris/iris.usd",
     "Iris2": ROBOTS_ASSETS + "/Iris/iris4.usd",
+    "IrisFinal": ROBOTS_ASSETS + "/Iris/iris_final.usd",
     "fw": ROBOTS_ASSETS + "/fixedwing/fixedwing_edited2.usd",
     "Cube": ROBOTS_ASSETS + "/Flying Cube/cube_new.usd",
     "fixed-wing": ROBOTS_ASSETS + "/fixedwing/fixedwing.usd",
@@ -66,6 +67,7 @@ LOCAL_ENVIRONMENTS = {"Base": WORLD_ASSETS + "/Base.usd",
                       "Campus": WORLD_ASSETS + "/campus/campus_Final.usd",   #campus1.usd
                       "Lisbon": WORLD_ASSETS + "/old_pegasus/Lisbon.usd",
                       "Random_world": WORLD_ASSETS + "/random_world/random_field.usd",
+                      "TU Delft": WORLD_ASSETS + "/campus/TU_Delft_campus.usd",
                       }
 
 SIMULATION_ENVIRONMENTS = {}
