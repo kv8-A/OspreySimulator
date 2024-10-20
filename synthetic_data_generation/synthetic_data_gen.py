@@ -1,7 +1,7 @@
 import carb
 from omni.isaac.kit import SimulationApp
 
-simulation_app = SimulationApp({"headless": False})
+simulation_app = SimulationApp({"headless": True})
 
 from omni.isaac.core import World
 import omni.replicator.core as rep
@@ -148,27 +148,27 @@ class SyntheticDataRecorder:
         # Positions for random env 
         positions = [(0, 0, 30),(-20, -20, 30), (-80, -60, 30),(-50,62,40)]
         rotations = [(0,-90,0), (0, 0, 225), (0, 0, 215), (0,-90,0)]
-        # Positions for campus env
-        positions = [(0, 0, 30),(78, 625, 62)]
-        rotations = [(0,-90,0), (0, 0, 50)]
+        # # Positions for campus env
+        # positions = [(0, 0, 30),(78, 625, 62)]
+        # rotations = [(0,-90,0), (0, 0, 50)]
         # positions, rotations = self._generate_camera_pose(number_of_frames)
         self._save_camera_pose_intrinsics(positions, rotations, 1)
         with rep.trigger.on_frame(num_frames=number_of_frames):
             self.run_different_cameras(positions, rotations)
-            while simulation_app.is_running():
-                # print("Running")
-                self._world.step(render=True)
+            # while simulation_app.is_running():
+            #     # print("Running")
+            #     self._world.step(render=True)
 
         carb.log_warn("Simulation stopped")
         simulation_app.close()
 
 def main():
-    recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU Delft"])
-    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world_test"])
+    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU Delft"])
+    recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world_test"])
     # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world"])
     # recorder.record(number_of_frames=5)
-    # recorder.record(number_of_frames=4)
-    recorder.record(number_of_frames=2)
+    recorder.record(number_of_frames=4)
+    # recorder.record(number_of_frames=2)
 
 if __name__ == "__main__":
     main()
