@@ -52,3 +52,6 @@ log/
 # Data Files
 *.png
 *.csv
+
+*.npz
+*.npy
