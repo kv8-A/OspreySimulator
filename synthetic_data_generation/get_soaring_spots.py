@@ -22,19 +22,21 @@ from typing import List, Tuple
 from scipy.spatial import KDTree
 from numpy.typing import NDArray
 
-from edge_detection import extract_upper_edges_noconnect
+from edge_detection import extract_upper_edges_noconnect, extract_edges_pixels
 
 
 class WindFieldProcessor:
-    def __init__(self, wind_field_path: str, world_coor_path: str):
+    def __init__(self, wind_field_path: str, world_coor_path: str, output_path: str):
         """
-        Initializes the WindFieldProcessor with paths to the wind field data and world coordinate files.
+        Initializes the WindFieldProcessor with paths to the wind field data, world coordinate files, and output directory.
 
         :param wind_field_path: Path to the wind field .npz file.
         :param world_coor_path: Path to the directory containing world coordinate .npy files.
+        :param output_path: Path to the directory where the output vertical wind images will be saved.
         """
         self.wind_field_path: str = wind_field_path
         self.world_coor_path: str = world_coor_path
+        self.output_path: str = output_path
         self.velocity_vectors: NDArray[np.float64] | None = None
         self.cell_positions: NDArray[np.float64] | None = None
         self.world_coordinates_image: np.ndarray
@@ -42,7 +44,6 @@ class WindFieldProcessor:
         self.H: int = 0
         self.W: int = 0
         self.top_edge_pixels: List[Tuple[int, int]] = []
-
 
     def _load_wind_field_data(self) -> None:
         """
@@ -65,13 +66,12 @@ class WindFieldProcessor:
 
         world_coor_file = os.path.join(self.world_coor_path, f"reshaped_point_cloud_{idx_str}.npy")
         world_coordinates_image = np.load(world_coor_file)
-        # if len(self.coordinates) == 0:
         self.H, self.W, _ = world_coordinates_image.shape  # Initialize H and W if loading for the first time
         print(f"World coordinates loaded for {idx} from {world_coor_file}")
         self.world_coordinates_image = world_coordinates_image
         return world_coordinates_image
     
-    def move_coordinate(self, original_coord:np.ndarray, movement_vector: np.ndarray) -> np.ndarray:
+    def move_coordinate(self, original_coord: np.ndarray, movement_vector: np.ndarray) -> np.ndarray:
         """
         Moves a coordinate by the specified movement vector.
 
@@ -129,35 +129,29 @@ class WindFieldProcessor:
         """
         original_coord = self.world_coordinates_image[y, x]
         # Check if the original coordinate is valid (not NaN)
+
         if np.isnan(original_coord).any():
+            # Check coordinate above or below because the edge pixel should exist
+            # for dy in range(1, 7):
+            #     new_y = y - dy
+            #     if new_y >= self.H:
+            #         break
+            #     new_coord = self.world_coordinates_image[new_y, x]
+            #     if not np.isnan(new_coord).any():
+            #         original_coord = new_coord
+            #         print(f"originial coord found at index {dy}")
+            #         print(f"edge was at {y}, {x}, but was nan so now its at {new_y}, {x}") 
+            #         new_coord = self.move_coordinate(original_coord, movement_vector)
+            #         interpolated_wind = self.interpolate_wind_vector(new_coord)
+            #         vertical_wind = interpolated_wind[2]  # Extract the vertical component
+            #         return vertical_wind
+                
             return np.nan  # Return NaN for invalid coordinates
 
         new_coord = self.move_coordinate(original_coord, movement_vector)
         interpolated_wind = self.interpolate_wind_vector(new_coord)
         vertical_wind = interpolated_wind[2]  # Extract the vertical component
         return vertical_wind
-
-    def process_all_pixels(self, movement_vector: np.ndarray) -> np.ndarray:
-        """
-        Processes all pixels in the image and computes the vertical wind component for each.
-
-        Args:
-            movement_vector: np.ndarray of shape (3,), movement vector to apply to each coordinate.
-
-        Returns:
-            np.ndarray of shape (H, W): An array containing the vertical wind component at each pixel.
-        """
-        if self.coordinates is None:
-            raise ValueError("World coordinates are not loaded. Load world coordinates first.")
-
-        self.vertical_wind_image = np.full((self.H, self.W), np.nan)  # Initialize the output image with NaN
-
-        for y in range(self.H):
-            for x in range(self.W):
-                vertical_wind = self.process_pixel(y, x, movement_vector)
-                self.vertical_wind_image[y, x] = vertical_wind
-
-        return self.vertical_wind_image
 
     def process_top_edge_pixels(self, movement_vector: np.ndarray, edges: np.ndarray) -> np.ndarray:
         """
@@ -175,9 +169,17 @@ class WindFieldProcessor:
 
         self.vertical_wind_image = np.full((self.H, self.W), np.nan)  # Initialize the output image with NaN
 
+        count_nans = 0
+        count_valid = 0
         for x, y in edges:
+            # Move y up to contour nan problems with incorrect edge detection
+            y = y +2
             if 0 <= y < self.H and 0 <= x < self.W:
                 vertical_wind = self.process_pixel(y, x, movement_vector)
+                if np.isnan(vertical_wind):
+                    count_nans += 1
+                else:
+                    count_valid += 1
                 self.vertical_wind_image[y, x] = vertical_wind
 
                  # Assign vertical wind to the 10 pixels above
@@ -191,7 +193,7 @@ class WindFieldProcessor:
                         break  # Stop if invalid coordinate
             else:
                 print(f"Pixel coordinate ({y}, {x}) is out of bounds and will be skipped.")
-
+        print(f"Processed {count_valid} valid pixels and skipped {count_nans} invalid edges pixels.")
         return self.vertical_wind_image
 
     def get_vertical_wind_image(self) -> np.ndarray:
@@ -203,48 +205,103 @@ class WindFieldProcessor:
         """
         return self.vertical_wind_image
 
-def main():
-    import numpy as np
-    import os
+    def process_all_data(self, movement_vector: np.ndarray) -> None:
+        """
+        Processes all the world coordinate files in the specified directory and saves the vertical wind images.
 
-    # Set paths for the wind field data and world coordinate files
-    wind_field_path = "synthetic_data_generation/wind_fields/run_20241012_223409_random_field_flow_test/flow_field_data_100.npz"
+        Args:
+            movement_vector: np.ndarray of shape (3,), movement vector to apply to each coordinate.
+        """
+        # Extract wind velocity from the wind field path
+        velocity_str = self.wind_field_path.split('_v_')[-1].split('.npz')[0]
+        # Get a sorted list of all world coordinate files
+        world_coor_files = sorted([f for f in os.listdir(self.world_coor_path) if f.startswith("reshaped_point_cloud_") and f.endswith(".npy")])
+
+        for world_coor_file in world_coor_files:
+            idx = int(world_coor_file.split('_')[-1].split('.')[0])
+            # Load world coordinates for the current index
+            self._load_world_coordinates(idx)
+
+            # Load the corresponding depth image to detect edges
+            depth_image_file = os.path.join(self.world_coor_path, f"distance_to_camera_{str(idx).zfill(4)}.npy")
+            depth_image = np.load(depth_image_file)
+
+            # Extract the edges
+            # edges = extract_upper_edges_noconnect(depth_image)
+            edges = extract_edges_pixels(depth_image)
+
+            # Process only the top-edge pixels
+            vertical_wind_image = self.process_top_edge_pixels(movement_vector, edges)
+
+            # Save the resulting vertical wind image to the output directory
+            output_file = os.path.join(self.output_path, f"vertical_wind_image_edges_{str(idx).zfill(4)}_v_{velocity_str}.npy")
+            np.save(output_file, vertical_wind_image)
+            print(f"Vertical wind image saved to {output_file}")
+
+if __name__ == "__main__":
+    # Set paths for the wind field data, world coordinate files, and output directory
+    wind_field_path = "synthetic_data_generation/wind_fields/Random_world_test/run_20241021_210945_random_field_flow_test_10_0/flow_field_data_100_v_10_0.npz"
     world_coor_path = "synthetic_data_generation/output"
-
-    depth_image = 'synthetic_data_generation/output/distance_to_camera_0002.npy'
+    output_path = "synthetic_data_generation/processed_output"
 
     # Initialize the WindFieldProcessor with the paths
-    processor = WindFieldProcessor(wind_field_path, world_coor_path)
+    processor = WindFieldProcessor(wind_field_path, world_coor_path, output_path)
 
     # Load the wind field data
     processor._load_wind_field_data()
 
-    # Load world coordinates for a specific index (e.g., '0001')
-    idx = 2
-    processor._load_world_coordinates(idx)
-
     # Define the movement vector (e.g., 1m forward in x, 1m upward in z)
     movement_vector = np.array([0.0, 0.0, 1.0])
 
-    # Define 'edges' as a list of pixel coordinates (list of (y, x) tuples)
-    # You need to provide your own method or data to define 'edges'
-    # For this example, let's assume 'edges' is obtained from an edge detection function
-    # Replace 'your_edge_detection_function' with your actual edge detection function
+    # Process all data and save the vertical wind images
+    processor.process_all_data(movement_vector)
 
 
-    # Get the list of edge pixels
-    # edges = extract_upper_edges_noconnect(processor.world_coordinates_image)
-    edges = extract_upper_edges_noconnect(depth_image)
 
-    # Process only the top-edge pixels
-    vertical_wind_image = processor.process_top_edge_pixels(movement_vector, edges)
 
-    # Now vertical_wind_image contains the vertical wind component at the edge pixels
-    # You can save or visualize this image as needed
-    idx_str  = str(idx).zfill(4)
-    output_path = os.path.join(world_coor_path, f"vertical_wind_image_edges_{idx_str}.npy")
-    np.save(output_path, vertical_wind_image)
-    print(f"Vertical wind image saved to {output_path}")
 
-if __name__ == "__main__":
-    main()
+# def main():
+#     import numpy as np
+#     import os
+
+#     # Set paths for the wind field data and world coordinate files
+#     wind_field_path = "synthetic_data_generation/wind_fields/run_20241012_223409_random_field_flow_test/flow_field_data_100.npz"
+#     world_coor_path = "synthetic_data_generation/output"
+
+#     depth_image = 'synthetic_data_generation/output/distance_to_camera_0002.npy'
+
+#     # Initialize the WindFieldProcessor with the paths
+#     processor = WindFieldProcessor(wind_field_path, world_coor_path)
+
+#     # Load the wind field data
+#     processor._load_wind_field_data()
+
+#     # Load world coordinates for a specific index (e.g., '0001')
+#     idx = 2
+#     processor._load_world_coordinates(idx)
+
+#     # Define the movement vector (e.g., 1m forward in x, 1m upward in z)
+#     movement_vector = np.array([0.0, 0.0, 1.0])
+
+#     # Define 'edges' as a list of pixel coordinates (list of (y, x) tuples)
+#     # You need to provide your own method or data to define 'edges'
+#     # For this example, let's assume 'edges' is obtained from an edge detection function
+#     # Replace 'your_edge_detection_function' with your actual edge detection function
+
+
+#     # Get the list of edge pixels
+#     # edges = extract_upper_edges_noconnect(processor.world_coordinates_image)
+#     edges = extract_upper_edges_noconnect(depth_image)
+
+#     # Process only the top-edge pixels
+#     vertical_wind_image = processor.process_top_edge_pixels(movement_vector, edges)
+
+#     # Now vertical_wind_image contains the vertical wind component at the edge pixels
+#     # You can save or visualize this image as needed
+#     idx_str  = str(idx).zfill(4)
+#     output_path = os.path.join(world_coor_path, f"vertical_wind_image_edges_{idx_str}.npy")
+#     np.save(output_path, vertical_wind_image)
+#     print(f"Vertical wind image saved to {output_path}")
+
+# if __name__ == "__main__":
+#     main()

@@ -1,12 +1,13 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+from typing import Union, List, Tuple
 
 # Use non-interactive backend for headless environments
 import matplotlib
 matplotlib.use('Agg')
 
-def process_distance_to_camera_image(image_path: str) -> np.ndarray:
+def process_distance_to_camera_image(image_input: Union[str,np.ndarray]) -> np.ndarray:
     """
     Load the distance_to_camera image and apply edge detection to identify upper borders.
     
@@ -16,8 +17,15 @@ def process_distance_to_camera_image(image_path: str) -> np.ndarray:
     Returns:
         np.ndarray: Binary edge image.
     """
+    if isinstance(image_input, str):
+        # Load the distance-to-camera image
+        distance_image = np.load(image_input)
+    elif isinstance(image_input, np.ndarray):
+        distance_image = image_input
+    else:
+        raise TypeError("Expected input to be str or np.ndarray")
     # Load the distance-to-camera image
-    distance_image= np.load(image_path)
+    # distance_image= np.load(image_path)
     distance_image = np.nan_to_num(distance_image, nan=0.0, posinf=0.0, neginf=0)
 
     # Normalize for better visualization (optional)
@@ -95,92 +103,143 @@ def connect_points(points, max_distance=0.1):
 
     return continuous_line
 
+def extract_upper_edges_noconnect(input_file: str):
+    edges, distance_normalized, contours = process_distance_to_camera_image(input_file)
+    upper_edges = extract_upper_edges(contours)
+    return upper_edges
 def extract_upper_edges_main(input_file: str):
     edges, distance_normalized, contours = process_distance_to_camera_image(input_file)
     upper_edges = extract_upper_edges(contours)
     continuous_upper_edges = connect_points(upper_edges)
     return upper_edges
 
+def extract_edges_pixels(input_file: str):
+    edges, distance_normalized, contours = process_distance_to_camera_image(input_file)
+    edge_pixels = []
+    # Find non-zero pixels (these are the edge pixels)
+    edge_coords = np.transpose(np.nonzero(edges))
+    
+    # Convert each coordinate to a tuple and add to the list
+    for coord in edge_coords:
+        edge_pixels.append((coord[1], coord[0]))
+
+    return edge_pixels
 # Use this function to get the improved upper edges
 
 
 # input_file = 'synthetic_data_generation/output/distance_to_camera_0001.npy'
-# input_file = 'synthetic_data_generation/output/distance_to_camera_0002.npy'
-input_file = 'synthetic_data_generation/output/distance_to_camera_0003.npy'
+# input_file = 'synthetic_data_generation/output/distance_to_camera_0004.npy'
+input_file = 'synthetic_data_generation/output/distance_to_camera_0034.npy'
+# input_file = 'synthetic_data_generation/output/distance_to_camera_0003.npy'
+# input_file = 'synthetic_data_generation/output/distance_image002_FROMPOINTCLOUD.npy'
 edges, distance_normalized, contours = process_distance_to_camera_image(input_file)
+edge_pixels = extract_edges_pixels(input_file)
 contour_image = np.zeros_like(edges)
-cv2.drawContours(contour_image, contours, -1, (255), 1)
 
-plt.figure(figsize=(15, 5))
-plt.subplot(1, 3, 1)
-plt.imshow(distance_normalized, cmap='gray')
-plt.title('Normalized Distance Image')
-plt.axis('off')
+def plot_edge_pixels(edge_pixels: List[Tuple[int, int]], depth_image: np.array, edges: np.array) -> None:
+    """
+    Plots the collected edge pixels as a scatter plot and overlays the edges mask.
 
-plt.subplot(1, 3, 2)
-plt.imshow(edges, cmap='gray')
-plt.title('Edges Detected')
-plt.axis('off')
+    Args:
+        edge_pixels (List[Tuple[int, int]]): List of (x, y) coordinates for each edge pixel.
+        depth_image (np.array): The depth image to use as the background.
+        edges (np.array): The edges mask to overlay.
+    """
+    x_coords, y_coords = zip(*edge_pixels)
+    plt.figure(figsize=(10, 6))
+    plt.imshow(depth_image, cmap='gray')
+    plt.imshow(edges, cmap='jet', alpha=0.1)  # Overlay edges mask with some transparency
+    plt.scatter(x_coords, y_coords, s=1, c='red', alpha=0.1)
+    plt.scatter(300, 250, s=0.1, c='orange', alpha=0.5)
+    plt.xlabel('X Coordinate (Width)')
+    plt.ylabel('Y Coordinate (Height)')
+    plt.title('Scatter Plot of Edge Pixels with Edges Overlay')
+    plt.savefig('synthetic_data_generation/output/edge_pixels_overlay.png')
+    # plt.show()
 
-plt.subplot(1, 3, 3)
-plt.imshow(contour_image, cmap='gray')
-plt.title('Contours on Edges')
-plt.axis('off')
-
-# plt.show()
-plt.savefig('synthetic_data_generation/output/edge_detection.png')
-
-upper_edges = extract_upper_edges(contours)
-continuous_upper_edges = connect_points(upper_edges)
-# upper_edges = extract_top_horizontal_edges(contours)
-
-color_edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
-    # Draw the upper edges in red
-for edge in upper_edges:
-    color_edges[edge[1], edge[0]] = (255, 0, 0)  # Red color in BGR format
+# Example usage:
+# edges, _, _ = process_distance_to_camera_image('your_image_file.npy')
+edge_pixels = extract_edges_pixels(input_file)
+depth_image = np.load(input_file)
+plot_edge_pixels(edge_pixels, depth_image, edges)
 
 
 
-# Draw the upper edges in red, ensuring they are within bounds
-color_edges2 = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
-
-# for line in continuous_upper_edges:
-#     for edge in line:
-#         color_edges2[edge[1], edge[0]] = (0, 0, 255)  # Red color in BGR format
-for edge in continuous_upper_edges:
-    color_edges2[edge[1], edge[0]] = (0, 0, 255)  # Red color in BGR format
-
-# Plot the original edges and the color overlay
-plt.figure(figsize=(10, 5))
-plt.subplot(1, 3, 1)
-plt.imshow(edges, cmap='gray')
-plt.title('Original Edges')
-plt.axis('off')
-
-plt.subplot(1, 3, 2)
-plt.imshow(color_edges)
-plt.title('Filtered Upper Edges (Red)')
-plt.axis('off')
-
-plt.subplot(1, 3, 3)
-plt.imshow(color_edges2)
-plt.title('Continuous Filtered Upper Edges (blue)')
-plt.axis('off')
 
 
-plt.savefig('synthetic_data_generation/output/filtered_edges.png')
-upper_edges = np.array(upper_edges)
-continuous_upper_edges = np.array(continuous_upper_edges)
-# print(edges.shape)
-# print(edges)
-# for row in edges:
-#     for pixel in row:
-#         if pixel > 0:
-#             print(pixel)
-    # print(row)
-print(upper_edges.shape)
-print(upper_edges)
-print(type(upper_edges))
-# print(continuous_upper_edges)
-# print(continuous_upper_edges.shape)
-# print(color_edges.shape)
+
+# cv2.drawContours(contour_image, contours, -1, (255), 1)
+
+# plt.figure(figsize=(15, 5))
+# plt.subplot(1, 3, 1)
+# plt.imshow(distance_normalized, cmap='gray')
+# plt.title('Normalized Distance Image')
+# plt.axis('off')
+
+# plt.subplot(1, 3, 2)
+# plt.imshow(edges, cmap='gray')
+# plt.title('Edges Detected')
+# plt.axis('off')
+
+# plt.subplot(1, 3, 3)
+# plt.imshow(contour_image, cmap='gray')
+# plt.title('Contours on Edges')
+# plt.axis('off')
+
+# # plt.show()
+# plt.savefig('synthetic_data_generation/output/edge_detection.png')
+
+# upper_edges = extract_upper_edges(contours)
+# continuous_upper_edges = connect_points(upper_edges)
+# # upper_edges = extract_top_horizontal_edges(contours)
+
+# color_edges = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+#     # Draw the upper edges in red
+# for edge in upper_edges:
+#     color_edges[edge[1], edge[0]] = (255, 0, 0)  # Red color in BGR format
+
+
+
+# # Draw the upper edges in red, ensuring they are within bounds
+# color_edges2 = cv2.cvtColor(edges, cv2.COLOR_GRAY2BGR)
+
+# # for line in continuous_upper_edges:
+# #     for edge in line:
+# #         color_edges2[edge[1], edge[0]] = (0, 0, 255)  # Red color in BGR format
+# for edge in continuous_upper_edges:
+#     color_edges2[edge[1], edge[0]] = (0, 0, 255)  # Red color in BGR format
+
+# # Plot the original edges and the color overlay
+# plt.figure(figsize=(10, 5))
+# plt.subplot(1, 3, 1)
+# plt.imshow(edges, cmap='gray')
+# plt.title('Original Edges')
+# plt.axis('off')
+
+# plt.subplot(1, 3, 2)
+# plt.imshow(color_edges)
+# plt.title('Filtered Upper Edges (Red)')
+# plt.axis('off')
+
+# plt.subplot(1, 3, 3)
+# plt.imshow(color_edges2)
+# plt.title('Continuous Filtered Upper Edges (blue)')
+# plt.axis('off')
+
+
+# plt.savefig('synthetic_data_generation/output/filtered_edges.png')
+# upper_edges = np.array(upper_edges)
+# continuous_upper_edges = np.array(continuous_upper_edges)
+# # print(edges.shape)
+# # print(edges)
+# # for row in edges:
+# #     for pixel in row:
+# #         if pixel > 0:
+# #             print(pixel)
+#     # print(row)
+# print(upper_edges.shape)
+# # print(upper_edges)
+# print(type(upper_edges))
+# # print(continuous_upper_edges)
+# # print(continuous_upper_edges.shape)
+# # print(color_edges.shape)

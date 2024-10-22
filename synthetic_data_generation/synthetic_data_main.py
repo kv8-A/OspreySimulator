@@ -1,9 +1,13 @@
 import os
+import glob
 import numpy as np
-from synthetic_data_gen import SyntheticDataRecorder
+# from synthetic_data_gen import SyntheticDataRecorder
 from get_coordinates import PointCloudProcessor
 from get_soaring_spots import WindFieldProcessor
-from pegasus.simulator.params import SIMULATION_ENVIRONMENTS
+# from pegasus.simulator.params import SIMULATION_ENVIRONMENTS
+import time
+import subprocess
+import shutil
 
 
 class SyntheticDataGeneration:
@@ -19,17 +23,20 @@ class SyntheticDataGeneration:
         self.env_output_dir = os.path.join(output_base_dir, environment)
         os.makedirs(self.env_output_dir, exist_ok=True)
 
-    def run_synthetic_data_generation(self, number_of_frames: int) -> None:
-        """
-        Generates synthetic data including depth images, point clouds, and camera parameters.
+    # def run_synthetic_data_generation(self, number_of_frames: int) -> None:
+    #     """
+    #     Generates synthetic data including depth images, point clouds, and camera parameters.
 
-        :param number_of_frames: Number of frames to record.
-        """
-        print(f"Running synthetic data generation for environment: {self.environment}")
-        recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS[self.environment])
-        recorder.output_dir = os.path.join(self.env_output_dir, "output")
-        os.makedirs(recorder.output_dir, exist_ok=True)
-        recorder.record(number_of_frames=number_of_frames)
+    #     :param number_of_frames: Number of frames to record.
+    #     """
+    #     print(f"Running synthetic data generation for environment: {self.environment}")
+    #     recorder.output_dir = os.path.join(self.env_output_dir, "output")
+    #     os.makedirs(recorder.output_dir, exist_ok=True)
+    #     time.sleep(5)
+    #     recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS[self.environment])
+    #     recorder.output_dir = os.path.join(self.env_output_dir, "output")
+    #     os.makedirs(recorder.output_dir, exist_ok=True)
+    #     recorder.record(number_of_frames=number_of_frames)
 
     def run_point_cloud_processing(self, start_idx: int, end_idx: int) -> None:
         """
@@ -43,11 +50,10 @@ class SyntheticDataGeneration:
         processor = PointCloudProcessor(base_path)
         processor.process_and_save_images(start_idx, end_idx)
 
-    def run_wind_field_processing(self, wind_field_paths: list, movement_vector: np.ndarray) -> None:
+    def run_wind_field_processing(self, movement_vector: np.ndarray) -> None:
         """
         Processes wind fields for a specific environment.
 
-        :param wind_field_paths: List of paths to wind field .npz files.
         :param movement_vector: Movement vector to apply to each coordinate.
         """
         print(f"Running wind field processing for environment: {self.environment}")
@@ -55,7 +61,11 @@ class SyntheticDataGeneration:
         output_path = os.path.join(self.env_output_dir, "processed_output")
         os.makedirs(output_path, exist_ok=True)
 
-        for wind_field_path in wind_field_paths:
+        # Get all wind field files for the specified environment using glob
+        wind_field_base_path = os.path.join("synthetic_data_generation", "wind_fields", self.environment)
+        wind_field_files = glob.glob(os.path.join(wind_field_base_path, "**", "*.npz"), recursive=True)
+
+        for wind_field_path in wind_field_files:
             processor = WindFieldProcessor(wind_field_path, world_coor_path, output_path)
             processor._load_wind_field_data()
             processor.process_all_data(movement_vector)
@@ -83,27 +93,25 @@ class SyntheticDataGeneration:
                 target_file = os.path.join(nn_output_dir, file_name)
                 np.save(target_file, np.load(source_file))
 
-# TODO make possible for multiple environments at once
+
 def main():
     environment = "Random_world_test"
+    # environment = "TU_Delft"
     output_base_dir = "synthetic_data_generation"
     number_of_frames = 4
     start_idx = 1
-    end_idx = 4
-    movement_vector = np.array([0.0, 0.0, 1.0])
-
-    # Define paths for wind fields
-    wind_field_base_path = "synthetic_data_generation/wind_fields/run_20241012_223409_random_field_flow_test"
-    wind_field_files = [
-        os.path.join(wind_field_base_path, f"flow_field_data_{str(i).zfill(3)}.npz")
-        for i in range(100, 105)  # Example range for wind field files
-    ]
+    end_idx = 40
+    movement_vector = np.array([0.0, 0.0, 2.0])
 
     # Initialize and run the full synthetic data generation flow
     data_generator = SyntheticDataGeneration(environment, output_base_dir)
-    data_generator.run_synthetic_data_generation(number_of_frames)
+    # data_generator.run_synthetic_data_generation(number_of_frames)
+    # TODO For now copy output manually
+    # TODO copy output from synthetic_data_gen.py to synthetic_data_generation/{environment}/output
+    # subprocess.run("ISAACSIM_PYTHON synthetic_data_generation/synthetic_data_gen.py",shell=True,executable='/bin/bash')
+    # time.sleep(10) # Wait for the data to be saved
     data_generator.run_point_cloud_processing(start_idx, end_idx)
-    data_generator.run_wind_field_processing(wind_field_files, movement_vector)
+    data_generator.run_wind_field_processing(movement_vector)
     data_generator.copy_data_for_neural_network()
 
 
