@@ -77,6 +77,7 @@ class SyntheticDataGeneration:
         print(f"Copying data for neural network for environment: {self.environment}")
         source_depth_path = os.path.join(self.env_output_dir, "output")
         source_wind_path = os.path.join(self.env_output_dir, "processed_output")
+        # source_wind_vector = os.path.join(self.env_output_dir, "processed_output")
         nn_output_dir = os.path.join(self.env_output_dir, "nn_data")
         os.makedirs(nn_output_dir, exist_ok=True)
 
@@ -88,15 +89,21 @@ class SyntheticDataGeneration:
                 np.save(target_file, np.load(source_file))
 
         for file_name in os.listdir(source_wind_path):
+            # Copy vertical wind images 
             if file_name.startswith("vertical_wind_image_edges_") and file_name.endswith(".npy"):
+                source_file = os.path.join(source_wind_path, file_name)
+                target_file = os.path.join(nn_output_dir, file_name)
+                np.save(target_file, np.load(source_file))
+            # Copy wind vectors to drone body frame files
+            elif file_name.startswith("wind_vector_to_drone_body_") and file_name.endswith(".npy"):
                 source_file = os.path.join(source_wind_path, file_name)
                 target_file = os.path.join(nn_output_dir, file_name)
                 np.save(target_file, np.load(source_file))
 
 
 def main():
-    environment = "Random_world_test"
-    # environment = "TU_Delft"
+    # environment = "Random_world_test"
+    environment = "TU_Delft"
     output_base_dir = "synthetic_data_generation"
     number_of_frames = 4
     start_idx = 1

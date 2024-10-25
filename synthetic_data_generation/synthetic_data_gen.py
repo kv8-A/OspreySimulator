@@ -1,7 +1,7 @@
 import carb
 from omni.isaac.kit import SimulationApp
 
-simulation_app = SimulationApp({"headless": True})
+simulation_app = SimulationApp({"headless": False})
 
 from omni.isaac.core import World
 import omni.replicator.core as rep
@@ -145,29 +145,38 @@ class SyntheticDataRecorder:
         rep.orchestrator.step()
         rep.orchestrator.run()
     
-        # Positions for random env 
-        positions = [(0, 0, 30),(-20, -20, 30), (-80, -60, 30),(-50,62,40)]
-        rotations = [(0,-90,0), (0, 0, 225), (0, 0, 215), (0,-90,0)]
-        # # Positions for campus env
-        # positions = [(0, 0, 30),(78, 625, 62)]
-        # rotations = [(0,-90,0), (0, 0, 50)]
+        # Predefined positions and rotations random soar env
+        # predefined_positions = [(0, 0, 30), (-20, -20, 30), (-80, -60, 30), (-50, 62, 40)]
+        # predefined_rotations = [(0, -90, 0), (0, 0, 225), (0, 0, 215), (0, -90, 0)]
+        # # Predefined Positions for campus env
+        predefined_positions = [(0, 0, 30),(78, 625, 62)]
+        predefined_rotations = [(0,-90,0), (0, 0, 50)]
         # positions, rotations = self._generate_camera_pose(number_of_frames)
+        num_predefined = len(predefined_positions)
+        num_generated = max(0, number_of_frames - num_predefined)
+        
+        generated_positions, generated_rotations = self._generate_camera_pose(num_generated)
+        
+        # Concatenate predefined with generated poses
+        positions = predefined_positions + generated_positions
+        rotations = predefined_rotations + generated_rotations
+
         self._save_camera_pose_intrinsics(positions, rotations, 1)
         with rep.trigger.on_frame(num_frames=number_of_frames):
             self.run_different_cameras(positions, rotations)
-            # while simulation_app.is_running():
-            #     # print("Running")
-            #     self._world.step(render=True)
+            while simulation_app.is_running():
+                # print("Running")
+                self._world.step(render=True)
 
         carb.log_warn("Simulation stopped")
         simulation_app.close()
 
 def main():
-    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU Delft"])
+    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU_Delft"])
     recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world_test"])
     # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world"])
-    # recorder.record(number_of_frames=5)
     recorder.record(number_of_frames=4)
+    # recorder.record(number_of_frames=40)
     # recorder.record(number_of_frames=2)
 
 if __name__ == "__main__":

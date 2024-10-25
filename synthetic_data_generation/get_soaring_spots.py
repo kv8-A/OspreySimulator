@@ -18,11 +18,13 @@ Create the Output Image: Store these averaged vertical wind components in a new 
 
 import numpy as np
 import os
+import json
 from typing import List, Tuple
 from scipy.spatial import KDTree
 from numpy.typing import NDArray
 
 from edge_detection import extract_upper_edges_noconnect, extract_edges_pixels
+from transformations import transform_wind_velocity
 
 
 class WindFieldProcessor:
@@ -70,6 +72,32 @@ class WindFieldProcessor:
         print(f"World coordinates loaded for {idx} from {world_coor_file}")
         self.world_coordinates_image = world_coordinates_image
         return world_coordinates_image
+    
+    def _transform_and_save_wind_velocity(self, idx: int, velocity_str: str) -> None:
+        """
+        Transforms the wind velocity to the drone body frame and saves the result.
+
+        Args:
+            idx: Index of the current file being processed.
+            velocity_str: Wind velocity string extracted from the wind field filename.
+        """
+        velocity_float = float(velocity_str.replace('_', '.'))
+        # TODO for now everything is in the x direction, need to change this once we have change in direction
+        wind_velocity_vector = np.array([velocity_float, 0.0, 0.0])
+
+        # Load the camera rotation from the corresponding camera pose JSON file
+        camera_pose_file = os.path.join(self.world_coor_path, f"camera_pose_{str(idx).zfill(4)}.json")
+        with open(camera_pose_file, 'r') as f:
+            camera_pose_data = json.load(f)
+        rotation_deg = camera_pose_data["rotation"][2]
+
+        # Transform wind velocity to the drone body frame
+        transformed_wind_vectors = transform_wind_velocity(wind_velocity_vector, rotation_deg)
+
+        # Save the transformed wind velocity
+        output_file = os.path.join(self.output_path, f"wind_vector_to_drone_body_{str(idx).zfill(4)}_v_{velocity_str}.npy")
+        np.save(output_file, transformed_wind_vectors)
+        print(f"Transformed wind velocity saved to {output_file}")
     
     def move_coordinate(self, original_coord: np.ndarray, movement_vector: np.ndarray) -> np.ndarray:
         """
@@ -237,6 +265,9 @@ class WindFieldProcessor:
             output_file = os.path.join(self.output_path, f"vertical_wind_image_edges_{str(idx).zfill(4)}_v_{velocity_str}.npy")
             np.save(output_file, vertical_wind_image)
             print(f"Vertical wind image saved to {output_file}")
+
+            # Transform and save wind velocity to the drone body frame
+            self._transform_and_save_wind_velocity(idx, velocity_str)
 
 if __name__ == "__main__":
     # Set paths for the wind field data, world coordinate files, and output directory

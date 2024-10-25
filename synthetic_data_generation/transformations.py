@@ -22,6 +22,44 @@ def load_camera_parameters(json_path: str) -> dict:
 
     return camera_params
 
+def transform_wind_velocity(wind_v_vector_world: np.ndarray, synthetic_camera_rotation_deg: float) -> np.ndarray:
+    """
+    Transforms wind velocity vector from world frame to drone (camera) frame.
+
+    Args:
+        V_world (np.ndarray): Wind velocity vector in world frame, shape (3,)
+                              Example: np.array([Vx_world, Vy_world, Vz_world])
+        synthetic_camera_rotation (float): syntethic camera rotation around z-axis in degrees.
+                                    This is the yaw angle in the world frame.
+
+    Returns:
+        np.ndarray: Wind velocity vector in drone frame, shape (3,)
+                    Example: np.array([Vx_drone, Vy_drone, Vz_drone])
+    """
+    # Correct for the camera's rotation difference
+    corrected_rotation_deg = (synthetic_camera_rotation_deg + 180.0) % 360
+
+    # Convert corrected rotation from degrees to radians
+    theta_rad = np.deg2rad(corrected_rotation_deg)
+
+    # Compute rotation matrix for rotation around z-axis by -theta (from world to drone frame)
+    cos_theta = np.cos(-theta_rad)
+    sin_theta = np.sin(-theta_rad)
+
+    # Rotation matrix around z-axis
+    R = np.array([
+        [cos_theta, -sin_theta, 0],
+        [sin_theta,  cos_theta, 0],
+        [0,          0,         1]
+    ])
+
+    # Transform wind velocity vector to drone frame
+    wind_to_drone_frame = R.dot(wind_v_vector_world)
+    xy_wind_array = wind_to_drone_frame[:2]
+
+    return xy_wind_array
+
+
 def pixel_to_world(u: int, v: int, distance: float, intrinsics: dict, camera_position: np.ndarray, camera_rotation: np.ndarray) -> np.ndarray:
     """
     Convert pixel coordinates and distance to world coordinates.
@@ -106,7 +144,7 @@ def create_world_coordinate_array(distance_image: np.ndarray, edges: np.ndarray,
             if distance > 0:
                 world_coord = pixel_to_world(u, v, distance, intrinsics, camera_position, camera_rotation)
                 world_coords_array[v, u] = world_coord  # Store in the 512x512 array
-                print(world_coord)
+                # print(world_coord)
     return world_coords_array
 
 
@@ -118,14 +156,22 @@ camera_file = f"synthetic_data_generation/output/camera_pose_{input_file.split('
 camera_params = load_camera_parameters(camera_file)
 intrinsics = camera_params['intrinsics']
 
-distance_image = np.load(input_file)
-# `edges` is assumed to be an array of shape (N, 2) with pixel coordinates of edges
-print(distance_image[400])
+# distance_image = np.load(input_file)
+# # `edges` is assumed to be an array of shape (N, 2) with pixel coordinates of edges
+# print(distance_image[400])
 
-# edges = extract_upper_edges_main(input_file)
-edges = np.array([])
+# # edges = extract_upper_edges_main(input_file)
+# edges = np.array([])
 
-world_coords_array = create_world_coordinate_array(distance_image, edges, intrinsics, camera_params)
-array_of_coordinates = world_coords_array[300]
-print("World coordinates array shape:", world_coords_array.shape)
-print(world_coords_array[300])
+# world_coords_array = create_world_coordinate_array(distance_image, edges, intrinsics, camera_params)
+# array_of_coordinates = world_coords_array[300]
+# print("World coordinates array shape:", world_coords_array.shape)
+# print(world_coords_array[300])
+
+# print(transform_wind_velocity(np.array([10, 0, 0]), 50))  # 50 degrees syntehtic camera thus 230 degrees in world frame
+# print(transform_wind_velocity(np.array([10, 0, 0]), 230))
+# print(transform_wind_velocity(np.array([10, 0, 0]), 90))
+# print(transform_wind_velocity(np.array([10, 0, 0]), 270)) # so 90 degrees of drone rotaion in world frame
+# print(transform_wind_velocity(np.array([10, 0, 0]), 0))
+print(transform_wind_velocity(np.array([5.0, 0, 0]), 215))
+print(transform_wind_velocity(np.array([5.0, 0, 0]), 225))
