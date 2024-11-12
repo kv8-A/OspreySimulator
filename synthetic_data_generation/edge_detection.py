@@ -127,41 +127,41 @@ def extract_edges_pixels(input_file: str):
 # Use this function to get the improved upper edges
 
 
-# input_file = 'synthetic_data_generation/output/distance_to_camera_0001.npy'
-# input_file = 'synthetic_data_generation/output/distance_to_camera_0004.npy'
-input_file = 'synthetic_data_generation/output/distance_to_camera_0034.npy'
-# input_file = 'synthetic_data_generation/output/distance_to_camera_0003.npy'
-# input_file = 'synthetic_data_generation/output/distance_image002_FROMPOINTCLOUD.npy'
-edges, distance_normalized, contours = process_distance_to_camera_image(input_file)
-edge_pixels = extract_edges_pixels(input_file)
-contour_image = np.zeros_like(edges)
+# # input_file = 'synthetic_data_generation/output/distance_to_camera_0001.npy'
+# # input_file = 'synthetic_data_generation/output/distance_to_camera_0004.npy'
+# input_file = 'synthetic_data_generation/output/distance_to_camera_0034.npy'
+# # input_file = 'synthetic_data_generation/output/distance_to_camera_0003.npy'
+# # input_file = 'synthetic_data_generation/output/distance_image002_FROMPOINTCLOUD.npy'
+# edges, distance_normalized, contours = process_distance_to_camera_image(input_file)
+# edge_pixels = extract_edges_pixels(input_file)
+# contour_image = np.zeros_like(edges)
 
-def plot_edge_pixels(edge_pixels: List[Tuple[int, int]], depth_image: np.array, edges: np.array) -> None:
-    """
-    Plots the collected edge pixels as a scatter plot and overlays the edges mask.
+# def plot_edge_pixels(edge_pixels: List[Tuple[int, int]], depth_image: np.array, edges: np.array) -> None:
+#     """
+#     Plots the collected edge pixels as a scatter plot and overlays the edges mask.
 
-    Args:
-        edge_pixels (List[Tuple[int, int]]): List of (x, y) coordinates for each edge pixel.
-        depth_image (np.array): The depth image to use as the background.
-        edges (np.array): The edges mask to overlay.
-    """
-    x_coords, y_coords = zip(*edge_pixels)
-    plt.figure(figsize=(10, 6))
-    plt.imshow(depth_image, cmap='gray')
-    plt.imshow(edges, cmap='jet', alpha=0.1)  # Overlay edges mask with some transparency
-    plt.scatter(x_coords, y_coords, s=1, c='red', alpha=0.1)
-    plt.scatter(300, 250, s=0.1, c='orange', alpha=0.5)
-    plt.xlabel('X Coordinate (Width)')
-    plt.ylabel('Y Coordinate (Height)')
-    plt.title('Scatter Plot of Edge Pixels with Edges Overlay')
-    plt.savefig('synthetic_data_generation/output/edge_pixels_overlay.png')
-    # plt.show()
+#     Args:
+#         edge_pixels (List[Tuple[int, int]]): List of (x, y) coordinates for each edge pixel.
+#         depth_image (np.array): The depth image to use as the background.
+#         edges (np.array): The edges mask to overlay.
+#     """
+#     x_coords, y_coords = zip(*edge_pixels)
+#     plt.figure(figsize=(10, 6))
+#     plt.imshow(depth_image, cmap='gray')
+#     plt.imshow(edges, cmap='jet', alpha=0.1)  # Overlay edges mask with some transparency
+#     plt.scatter(x_coords, y_coords, s=1, c='red', alpha=0.1)
+#     plt.scatter(300, 250, s=0.1, c='orange', alpha=0.5)
+#     plt.xlabel('X Coordinate (Width)')
+#     plt.ylabel('Y Coordinate (Height)')
+#     plt.title('Scatter Plot of Edge Pixels with Edges Overlay')
+#     plt.savefig('synthetic_data_generation/output/edge_pixels_overlay.png')
+#     # plt.show()
 
-# Example usage:
-# edges, _, _ = process_distance_to_camera_image('your_image_file.npy')
-edge_pixels = extract_edges_pixels(input_file)
-depth_image = np.load(input_file)
-plot_edge_pixels(edge_pixels, depth_image, edges)
+# # Example usage:
+# # edges, _, _ = process_distance_to_camera_image('your_image_file.npy')
+# edge_pixels = extract_edges_pixels(input_file)
+# depth_image = np.load(input_file)
+# plot_edge_pixels(edge_pixels, depth_image, edges)
 
 
 

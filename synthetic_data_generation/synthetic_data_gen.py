@@ -1,7 +1,7 @@
 import carb
 from omni.isaac.kit import SimulationApp
 
-simulation_app = SimulationApp({"headless": False})
+simulation_app = SimulationApp({"headless": True})
 
 from omni.isaac.core import World
 import omni.replicator.core as rep
@@ -123,10 +123,13 @@ class SyntheticDataRecorder:
                 json.dump(camera_pose_data, f)
 
 
-    def _generate_camera_pose(self, number_of_frames:int):
+    def _generate_camera_pose(self, number_of_frames:int, x_range: Tuple[int, int] , y_range: Tuple[int, int], z_range: Tuple[int, int] = (5, 60)):
         camera_positions = [
-            (random.uniform(-50, 50),random.uniform(-50, 50), random.uniform(0, 60)) for _ in range(number_of_frames)
+            (random.uniform(x_range[0],x_range[1]),random.uniform(y_range[0], y_range[1]), random.uniform(z_range[0], z_range[1])) for _ in range(number_of_frames)
             ]
+        # camera_positions = [
+        #     (random.uniform(-50, 50),random.uniform(-50, 50), random.uniform(5, 60)) for _ in range(number_of_frames)
+        #     ]
         camera_rotations = [
             (0,0, random.uniform(0, 360)) for _ in range(number_of_frames)
             ]
@@ -141,7 +144,9 @@ class SyntheticDataRecorder:
             
 
 
-    def record(self, number_of_frames: int):
+    # def record(self, number_of_frames: int):
+
+    def record(self, number_of_frames: int,x_range: Tuple[int, int] , y_range: Tuple[int, int], z_range: Tuple[int, int] = (5, 60)):
         rep.orchestrator.step()
         rep.orchestrator.run()
     
@@ -155,7 +160,7 @@ class SyntheticDataRecorder:
         num_predefined = len(predefined_positions)
         num_generated = max(0, number_of_frames - num_predefined)
         
-        generated_positions, generated_rotations = self._generate_camera_pose(num_generated)
+        generated_positions, generated_rotations = self._generate_camera_pose(num_generated, x_range , y_range)
         
         # Concatenate predefined with generated poses
         positions = predefined_positions + generated_positions
@@ -164,18 +169,20 @@ class SyntheticDataRecorder:
         self._save_camera_pose_intrinsics(positions, rotations, 1)
         with rep.trigger.on_frame(num_frames=number_of_frames):
             self.run_different_cameras(positions, rotations)
-            while simulation_app.is_running():
-                # print("Running")
-                self._world.step(render=True)
+            # while simulation_app.is_running():
+            #     # print("Running")
+            #     self._world.step(render=True)
 
         carb.log_warn("Simulation stopped")
         simulation_app.close()
 
 def main():
-    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU_Delft"])
-    recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world_test"])
+    recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU_Delft"])
+    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world_test"])
     # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world"])
-    recorder.record(number_of_frames=4)
+    # recorder.record(number_of_frames=4)
+    recorder.record(number_of_frames=600, x_range= (-400,400),y_range= (-400,400))
+    # recorder.record(number_of_frames=10, x_range= (-50,50),y_range= (-50,50))
     # recorder.record(number_of_frames=40)
     # recorder.record(number_of_frames=2)
 

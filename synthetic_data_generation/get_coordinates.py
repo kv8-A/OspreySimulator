@@ -152,18 +152,18 @@ class PointCloudProcessor:
             print(f"Saved distance image: {distance_image_path}")
 
 
-# Example usage
-base_path = "synthetic_data_generation/output"  # Folder where your files are stored
-processor = PointCloudProcessor(base_path)
+# # Example usage
+# base_path = "synthetic_data_generation/output"  # Folder where your files are stored
+# processor = PointCloudProcessor(base_path)
 
-# Process and save multiple images, e.g., from 0001 to 0003
-start_idx = 1
-end_idx = 4
+# # Process and save multiple images, e.g., from 0001 to 0003
+# start_idx = 1
+# end_idx = 4
 
-# img, point, camera = processor.load_data_for_multiple_images(start_idx, end_idx)
+# # img, point, camera = processor.load_data_for_multiple_images(start_idx, end_idx)
 
-# print(img)
-# print(point)
-# print(camera)
+# # print(img)
+# # print(point)
+# # print(camera)
 
-processor.process_and_save_images(start_idx, end_idx)
+# processor.process_and_save_images(start_idx, end_idx)

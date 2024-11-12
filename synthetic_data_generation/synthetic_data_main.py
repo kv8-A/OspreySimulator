@@ -107,7 +107,7 @@ def main():
     output_base_dir = "synthetic_data_generation"
     number_of_frames = 4
     start_idx = 1
-    end_idx = 40
+    end_idx = 600
     movement_vector = np.array([0.0, 0.0, 2.0])
 
     # Initialize and run the full synthetic data generation flow

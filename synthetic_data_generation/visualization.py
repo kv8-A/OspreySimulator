@@ -73,8 +73,8 @@ import cv2
 for i in range(1, 39):
     # depth_input_file = f'synthetic_data_generation/TU_Delft/nn_data/distance_to_camera_{str(i).zfill(4)}.npy'
     depth_input_file = f'synthetic_data_generation/Random_world_test/nn_data/distance_to_camera_{str(i).zfill(4)}.npy'
-
-    vertical_wind_image = np.load(f'synthetic_data_generation/Random_world_test/nn_data/vertical_wind_image_edges_{str(i).zfill(4)}_v_10_0.npy')
+    wind_str = "9_0"
+    vertical_wind_image = np.load(f'synthetic_data_generation/Random_world_test/nn_data/vertical_wind_image_edges_{str(i).zfill(4)}_v_{wind_str}.npy')
 
     edges, distance_normalized, contours = process_distance_to_camera_image(depth_input_file)
 
@@ -132,4 +132,4 @@ for i in range(1, 39):
     plt.axis('off')
 
     plt.tight_layout()
-    plt.savefig(f'synthetic_data_generation/Random_world_test/validation/vertical_wind_overlay_000{i}.png')
+    plt.savefig(f'synthetic_data_generation/Random_world_test/validation/vertical_wind_overlay_{str(i).zfill(4)}_v_{wind_str}.png')

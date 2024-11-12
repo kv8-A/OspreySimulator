@@ -67,7 +67,8 @@ LOCAL_ENVIRONMENTS = {"Base": WORLD_ASSETS + "/Base.usd",
                       "Campus": WORLD_ASSETS + "/campus/campus_Final.usd",   #campus1.usd
                       "Lisbon": WORLD_ASSETS + "/old_pegasus/Lisbon.usd",
                       "Random_world": WORLD_ASSETS + "/random_world/random_field.usd",
-                      "TU Delft": WORLD_ASSETS + "/campus/TU_Delft_campus.usd",
+                      "Random_world_test": WORLD_ASSETS + "/random_world/random_field_flow_test.usd",
+                      "TU_Delft": WORLD_ASSETS + "/campus/TU_Delft_campus.usd",
                       }
 
 SIMULATION_ENVIRONMENTS = {}

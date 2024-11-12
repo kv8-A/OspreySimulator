@@ -33,16 +33,16 @@ def save_depth_image(data, output_path):
         plt.title("2D Distance to Camera Data")
         plt.savefig(output_path)
         plt.close()
-    elif data.ndim == 3:
-        for i in range(data.shape[0]):
-            frame_output_path = output_path.replace('.png', f'_frame_{i}.png')
-            plt.imshow(data[i], cmap='gray')
-            plt.colorbar()
-            plt.title(f"Frame {i} - 2D Distance to Camera Data")
-            plt.savefig(frame_output_path)
-            plt.close()
+    # elif data.ndim == 3:
+    #     for i in range(data.shape[0]):
+    #         frame_output_path = output_path.replace('.png', f'_frame_{i}.png')
+    #         plt.imshow(data[i], cmap='gray')
+    #         plt.colorbar()
+    #         plt.title(f"Frame {i} - 2D Distance to Camera Data")
+    #         plt.savefig(frame_output_path)
+    #         plt.close()
     else:
-        print("The data has more than 3 dimensions, visualization is not supported.")
+        print("The data has more than 2 dimensions, visualization is not supported.")
 
 if __name__ == "__main__":
     directory = 'synthetic_data_generation/output'

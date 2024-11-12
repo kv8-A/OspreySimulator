@@ -49,6 +49,9 @@ log/
 **/Worlds/**
 **/WindFields/**
 
+# Data folders
+**/data/validation_data/**
+
 # Data Files
 *.png
 *.csv

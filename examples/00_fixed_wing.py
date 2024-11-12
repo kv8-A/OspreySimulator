@@ -70,7 +70,7 @@ class PegasusApp:
         # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Default Environment"]) # TODO Check coordinate system
 
         # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Campus"])  
-        self.pg.load_environment(SIMULATION_ENVIRONMENTS["TU Delft"])  
+        self.pg.load_environment(SIMULATION_ENVIRONMENTS["TU_Delft"])  
         # self.pg.load_environment(SIMULATION_ENVIRONMENTS["Random_world"])  
         #TODO if enviromnent is campus. Scale to right size. Check right size. 
 
