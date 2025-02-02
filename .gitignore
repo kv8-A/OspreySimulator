@@ -45,7 +45,7 @@ log/
 # Textures for USD environments
 **/textures/**
 
-*.usd 
+
 **/Worlds/**
 **/WindFields/**
 
