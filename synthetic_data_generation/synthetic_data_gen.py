@@ -177,11 +177,12 @@ class SyntheticDataRecorder:
         simulation_app.close()
 
 def main():
-    recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU_Delft"])
+    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["TU_Delft"])
     # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world_test"])
-    # recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world"])
+    recorder = SyntheticDataRecorder(usd_environment_path=SIMULATION_ENVIRONMENTS["Random_world"])
     # recorder.record(number_of_frames=4)
-    recorder.record(number_of_frames=600, x_range= (-400,400),y_range= (-400,400))
+    # recorder.record(number_of_frames=600, x_range= (-400,400),y_range= (-400,400))
+    recorder.record(number_of_frames=400, x_range= (-250,250),y_range= (-250,250))
     # recorder.record(number_of_frames=10, x_range= (-50,50),y_range= (-50,50))
     # recorder.record(number_of_frames=40)
     # recorder.record(number_of_frames=2)

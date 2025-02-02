@@ -70,11 +70,13 @@ from edge_detection import process_distance_to_camera_image, extract_upper_edges
 import cv2
 
 
-for i in range(1, 39):
-    # depth_input_file = f'synthetic_data_generation/TU_Delft/nn_data/distance_to_camera_{str(i).zfill(4)}.npy'
-    depth_input_file = f'synthetic_data_generation/Random_world_test/nn_data/distance_to_camera_{str(i).zfill(4)}.npy'
-    wind_str = "9_0"
-    vertical_wind_image = np.load(f'synthetic_data_generation/Random_world_test/nn_data/vertical_wind_image_edges_{str(i).zfill(4)}_v_{wind_str}.npy')
+for i in range(1, 2):
+    i = 84
+    depth_input_file = f'synthetic_data_generation/TU_Delft/nn_data/distance_to_camera_{str(i).zfill(4)}.npy'
+    # depth_input_file = f'synthetic_data_generation/Random_world_test/nn_data/distance_to_camera_{str(i).zfill(4)}.npy'
+    wind_str = "10_0"
+    vertical_wind_image = np.load(f'synthetic_data_generation/TU_Delft/nn_data/vertical_wind_image_edges_{str(i).zfill(4)}_v_{wind_str}.npy')
+    # vertical_wind_image = np.load(f'synthetic_data_generation/Random_world_test/nn_data/vertical_wind_image_edges_{str(i).zfill(4)}_v_{wind_str}.npy')
 
     edges, distance_normalized, contours = process_distance_to_camera_image(depth_input_file)
 
@@ -94,8 +96,8 @@ for i in range(1, 39):
     overlay = np.zeros_like(background_rgba)  # Same shape as 'background_rgba'
 
     # Define masks for soaring and downdraft spots
-    soaring_mask = vertical_wind_image > 1
-    downdraft_mask = vertical_wind_image < -1
+    soaring_mask = vertical_wind_image > 0.1
+    downdraft_mask = vertical_wind_image < -0.1
     between_mask = (vertical_wind_image >= -1) & (vertical_wind_image <= 1)
 
     # Set the color for soaring spots (green) with full opacity
@@ -105,7 +107,7 @@ for i in range(1, 39):
     overlay[downdraft_mask] = [1, 0, 0, 1]  # [R, G, B, A]
 
     # Set the color for values between -1 and 1 (orange) with full opacity
-    overlay[between_mask] = [1, 0.65, 0, 1]  # [R, G, B, A]
+    # overlay[between_mask] = [1, 0.65, 0, 1]  # [R, G, B, A]
 
     # Combine the background and overlay using alpha blending
     combined_image = background_rgba.copy()
@@ -115,21 +117,22 @@ for i in range(1, 39):
     mask = alpha_overlay == 1
     combined_image[mask] = overlay[mask]
 
-    plt.figure(figsize=(15, 5))
+    plt.figure(figsize=(14, 4))
     plt.subplot(1, 3, 1)
     plt.imshow(distance_normalized, cmap='gray')
-    plt.title('Normalized Distance Image')
+    plt.title('Distance Image', fontsize=20)
     plt.axis('off')
 
     plt.subplot(1, 3, 2)
     plt.imshow(edges, cmap='gray')
-    plt.title('Edges Detected')
+    plt.title('Detected Edges', fontsize=20)
     plt.axis('off')
 
     plt.subplot(1, 3, 3)
     plt.imshow(combined_image)
-    plt.title('Vertical Wind Velocity Overlay')
+    plt.title('Labeled Vertical Wind Velocity', fontsize=20)
     plt.axis('off')
 
     plt.tight_layout()
-    plt.savefig(f'synthetic_data_generation/Random_world_test/validation/vertical_wind_overlay_{str(i).zfill(4)}_v_{wind_str}.png')
+    # plt.savefig(f'synthetic_data_generation/Random_world_test/validation/vertical_wind_overlay_{str(i).zfill(4)}_v_{wind_str}.png')
+    plt.savefig(f'synthetic_data_generation/TU_Delft/validation/vertical_wind_overlay_{str(i).zfill(4)}_v_{wind_str}.png')

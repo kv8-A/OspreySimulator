@@ -103,11 +103,12 @@ class SyntheticDataGeneration:
 
 def main():
     # environment = "Random_world_test"
-    environment = "TU_Delft"
+    environment = "Random_world"
+    # environment = "TU_Delft"
     output_base_dir = "synthetic_data_generation"
     number_of_frames = 4
     start_idx = 1
-    end_idx = 600
+    end_idx = 400
     movement_vector = np.array([0.0, 0.0, 2.0])
 
     # Initialize and run the full synthetic data generation flow
