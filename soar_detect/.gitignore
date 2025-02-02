@@ -1,0 +1,49 @@
+# all folders starting with _ are local
+_build/
+.DS_Store
+**/.vscode/ipch
+
+# C++
+**/cmake-build*/
+**/build*/
+**/*.so
+
+# Python
+**/*.egg-info/
+**/__pycache__/
+**/.pytest_cache/
+**/*.pyc
+**/*.pb
+
+/.vs
+
+/app
+
+
+# 3D Geometry files
+*.obj
+*.stl
+*.blend
+*.npz
+*.usd
+*.usda
+*.usdc
+*.usdz
+*.npy   
+*.mtl
+*.blend1
+*.pth
+
+
+# CFD folders
+
+**/cfd/cfd_runs/**
+
+**/cfd/wind_around_buildings_tutorial/*0
+**/cfd/wind_around_buildings_tutorial/postProcessing
+
+# Images
+*.png
+
+#files 
+*.txt
