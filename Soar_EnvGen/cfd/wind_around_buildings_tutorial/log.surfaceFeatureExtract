@@ -1,0 +1,85 @@
+/*---------------------------------------------------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  2212                                  |
+|   \\  /    A nd           | Website:  www.openfoam.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+Build  : _66908158ae-20221220 OPENFOAM=2212 version=v2212
+Arch   : "LSB;label=32;scalar=64"
+Exec   : surfaceFeatureExtract
+Date   : Mar 12 2024
+Time   : 07:18:02
+Host   : kjell-blade-15
+PID    : 14515
+I/O    : uncollated
+Case   : /home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial
+nProcs : 1
+trapFpe: Floating point exception trapping enabled (FOAM_SIGFPE).
+fileModificationChecking : Monitoring run-time modified files using timeStampMaster (fileModificationSkew 5, maxFileModificationPolls 20)
+allowSystemOperations : Allowing user-supplied system call operations
+
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+Create time
+
+
+Note: Feature line extraction only valid on closed manifold surfaces
+
+Reading surfaceFeatureExtractDict
+
+Surfaces     : buildings.obj
+Output       : buildings
+Load options : offset
+Write options: writeObj=yes writeVTK=off
+
+Statistics:
+Triangles    : 360 in 1 region(s)
+Vertices     : 240
+Bounding Box : (16.25 41.25 0) (105.75 150.75 59.927)
+
+Constructing feature set from included angle 150
+Selecting edges based purely on geometric tests: no
+
+Initial Feature set:
+    points : 240
+    edges  : 360
+    of which
+        region edges   : 0
+        external edges : 360
+        internal edges : 0
+
+Final Feature set:
+    points : 240
+    of which
+        convex             : 240
+        concave            : 0
+        mixed              : 0
+        non-feature        : 0
+    edges  : 360
+    of which
+        external edges     : 360
+        internal edges     : 0
+        flat edges         : 0
+        open edges         : 0
+        multiply connected : 0
+
+Writing extendedFeatureEdgeMesh to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings.extendedFeatureEdgeMesh"
+
+Writing extendedEdgeMesh components to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings"
+Writing 240 convex feature points to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_convexFeaturePts.obj"
+Writing 0 concave feature points to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_concaveFeaturePts.obj"
+Writing 0 mixed feature points to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_mixedFeaturePts.obj"
+Writing 0 mixed feature point structure to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_mixedFeaturePtsStructure.obj"
+Writing 360 external edges to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_externalEdges.obj"
+Writing 0 internal edges to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_internalEdges.obj"
+Writing 0 flat edges to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_flatEdges.obj"
+Writing 0 open edges to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_openEdges.obj"
+Writing 0 multiple edges to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_multipleEdges.obj"
+Writing 0 region edges to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_regionEdges.obj"
+Writing 360 edge directions to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/extendedFeatureEdgeMesh/buildings_edgeDirections.obj"
+
+Writing featureEdgeMesh to "/home/kjell/Documents/Repositories/Soar_EnvGen/cfd/wind_around_buildings_tutorial/constant/triSurface/buildings.eMesh"
+ExecutionTime = 0.01 s  ClockTime = 0 s
+
+End
+

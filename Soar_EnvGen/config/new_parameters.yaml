@@ -1,0 +1,58 @@
+comment: 'Default configuration settings for Soar_EnvGen'
+
+directories:
+  config_dir: "{directory_path}/config/"
+  cfd_dir: "{directory_path}/cfd/"
+  # wind_data_dir: "{AutoGDM2_dir}/environments/wind_data/"
+  
+software:
+  # isaac_sim:
+  #   version: "2022.2.0"
+  #   isaac_dir: "{HOME_DIR}/.local/share/ov/pkg/isaac_sim-{ISAAC_VERSION}"
+  #   wh_gen_dir: "{isaac_dir}/exts/omni.isaac.examples/omni/isaac/examples/warehouse_gen"
+  # blender:
+  #   version: "3.5.0"
+  #   blender_dir: "{HOME_DIR}/Downloads/blender-{BLENDER_VERSION}-linux-x64"
+  openfoam:
+    version: "v2212"
+    openfoam_dir: "{home_dir}/Applications/OpenFOAM/OpenFOAM-{openfoam_version}"
+
+cfd:
+  mesh:
+    blockMeshDict:
+      xMin:   -250 
+      xMax:   250
+      yMin:   -250 
+      yMax:   250
+      zMin:     0
+      zMax:   140
+      xCells: 25
+      yCells: 20
+      zCells: 10
+    
+    snappyHexMeshDict:
+      explicityFeatureSnap: True #small capital letter inside dict
+      imlicitFeatureSnap: False # small capital letter inside dict
+      nSurfaceLayers: 2 
+      relativeSizes: True # small capital letter ""
+      expansionRatio: 1.2
+      finalLayerThickness: 0.5
+      minThickness: 0.001
+      mergeTolerance: 0.000001 
+      refinementBox:
+        min: [-200, -200, 0]
+        max: [200, 200, 100]
+ 
+  solving:
+    application: simpleFoam
+    endTime: 100 # [s]
+    deltaT: 1
+    writeInterval: 10 # [s]
+    maxCo: 1.0 # max Courant number, decrease in case of cfd failing
+
+  0directory:
+    inlet_vel: 10.0 # [m/s] 
+    # k: 0.0 # will be calculated based on other settings
+    # epsilon: 0.0 # will be calculated based on other settings
+    # latestTime: True # use the latest timestep as steadystate
+    # timeRange: '3:5' # [s] select the time range to be post-processed, latestTime must be False!
