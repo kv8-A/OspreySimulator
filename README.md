@@ -37,6 +37,7 @@ For further context, the simulation part of this project is based on the [Pegasu
 
 The high-level architecture of the simulation environment is illustrated below:
 
+![Description](docs/code_schematic-simulation_env.png)
 
 
 The system integrates NVIDIA Isaac Sim for physics-based simulation, synthetic data generation, and sensor modeling. The Pegasus Interface manages vehicle operations, and assets such as fixed-wing vehicles, wind field data, and environments are stored in .usd and .npy formats.
