@@ -1,100 +1,157 @@
-# Pegasus Simulator
+# Osprey Simulator
 
-![IsaacSim 2022.2.0](https://img.shields.io/badge/IsaacSim-2022.2.0-brightgreen.svg)
-![PX4-Autopilot 1.13.2](https://img.shields.io/badge/PX4--Autopilot-1.13.2-brightgreen.svg)
-![Ubuntu 20.04](https://img.shields.io/badge/Ubuntu-20.04LTS-brightgreen.svg)
-![Ubuntu 22.04](https://img.shields.io/badge/Ubuntu-22.04LTS-brightgreen.svg)
+**Osprey Simulator** is an integrated simulation environment built upon my fork of the Pegasus Simulator. This repository brings together three major components:
 
-**Pegasus Simulator** is a framework built on top of [NVIDIA
-Omniverse](https://docs.omniverse.nvidia.com/) and [Isaac
-Sim](https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/overview.html). It is designed to provide an easy yet powerful way of simulating the dynamics of vehicles. It provides a simulation interface for [PX4](https://px4.io/) integration as well as a custom python control interface. At the moment, only multirotor vehicles are supported, with support for other vehicle topologies planned for future versions.
+- **Fixed wing simulation**: A simulator for fixed-wing UAV simulations.
+- **Soar_Detect**: A deep learning-based wind vector detection and inference module.
+- **Synthetic Data Generation**: A module (from the original Pegasus Simulator fork) used for generating synthetic simulation data and running fixed-wing dynamics simulations.
+- **SoarEnvGen**: A CFD/OpenFOAM pipeline for environment generation.
 
-<p align = "center">
-<a href="https://youtu.be/_11OCFwf_GE" target="_blank"><img src="docs/_static/pegasus_cover.png" alt="Pegasus Simulator image" height="300"/></a>
-<a href="https://youtu.be/_11OCFwf_GE" target="_blank"><img src="docs/_static/mini demo.gif" alt="Pegasus Simulator gif" height="300"/></a>
-</p>
+Each component has its own README with detailed instructions. Please refer to the respective subfolders for more information on installation, usage, and configuration.
+
+> **Note:** The folder `extensions/pegasus.simulator/pegasus/simulator/assets` is intentionally left empty because asset files could not be uploaded to GitHub. To generate these files, please use SoarEnvGen or contact me directly.
+
+For further context, the simulation part of this project is based on the [Pegasus Simulator](https://github.com/PegasusSimulator/PegasusSimulator).
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Installation and Setup](#installation-and-setup)
+  - [Required Software](#required-software)
+  - [Installation Instructions](#installation-instructions)
+- [Usage](#usage)
+  - [Soar_Detect](#soar_detect)
+  - [Synthetic Data Generation](#synthetic-data-generation)
+  - [SoarEnvGen](#soarenvgen)
+- [Assets Note](#assets-note)
+- [License](#license)
+
+---
+
+## Overview
+
+**Osprey Simulator** combines the power of a well-established simulation engine (Pegasus Simulator) with advanced modules for synthetic data generation, CFD environment generation, and wind detection using deep learning. This unified repository enables streamlined simulation workflows, model training, and inference for fixed-wing dynamics and wind vector estimation.
+
+The high-level architecture of the simulation environment is illustrated below:
 
 
-Check the provided documentation [here](https://pegasussimulator.github.io/PegasusSimulator/) to discover how to install and use this framework.
 
-## Citation
+The system integrates NVIDIA Isaac Sim for physics-based simulation, synthetic data generation, and sensor modeling. The Pegasus Interface manages vehicle operations, and assets such as fixed-wing vehicles, wind field data, and environments are stored in .usd and .npy formats.
 
-If you find Pegasus Simulator useful in your academic work, please cite the paper below. It is also available [here](https://arxiv.org/abs/2307.05263).
+---
+
+## Project Structure
+
 ```
-@misc{jacinto2023pegasus,
-      title={Pegasus Simulator: An Isaac Sim Framework for Multiple Aerial Vehicles Simulation}, 
-      author={Marcelo Jacinto and João Pinto and Jay Patrikar and John Keller and Rita Cunha and Sebastian Scherer and António Pascoal},
-      year={2023},
-      eprint={2307.05263},
-      archivePrefix={arXiv},
-      primaryClass={cs.RO}
-}
+OspreySimulator/
+├── extensions/
+│   └── pegasus.simulator/
+│       └── pegasus/
+│           └── simulator/
+│               |── assets/  # Asset files are not included – generate with SoarEnvGen or request them.
+|               ├── logic/
+|               │   ├── atmosphere.py
+|               │   ├── dynamics.py
+|               │   ├── sensors.py
+|               │   └── vehicle.py
+|               ├── state.py  # Manages simulation states
+|               └── vehicle_manager.py  # Handles vehicle interactions
+├── soar_detect/  # Contains the wind detection module (see its README for details)
+├── synthetic_data_generation/  # Contains the Pegasus Simulator fork code & synthetic data generation scripts
+└── soarenv/  # Contains the CFD/OpenFOAM pipeline (SoarEnvGen) for environment generation
 ```
 
-## Main Developer Team
+- **soar_detect/**:  
+  Refer to [soar_detect/README.md](soar_detect/README.md) for instructions on data preparation, training, evaluation, and inference using the U-Net-based model for wind vector detection.
 
-This simulation framework is an open-source effort, started by me, Marcelo Jacinto in January/2023. It is a tool that was created with the original purpose of serving my Ph.D. workplan for the next 4 years, which means that you can expect this repository to be mantained, hopefully at least until 2027.
+- **synthetic_data_generation/**:  
+  This folder contains my Pegasus Simulator fork, where I run the simulations and fixed-wing dynamics. Check the README in this folder for detailed simulation and data generation instructions.
 
-* Project Founder
-	* [Marcelo Jacinto](https://github.com/MarceloJacinto), under the supervision of <u>Prof. Rita Cunha</u> and <u>Prof. Antonio Pascoal</u> (IST/ISR-Lisbon)
-* Architecture
-    * [Marcelo Jacinto](https://github.com/MarceloJacinto)
-	* [João Pinto](https://github.com/jschpinto)
-* Multirotor Dynamic Simulation and Control
-    * [Marcelo Jacinto](https://github.com/MarceloJacinto)
-* Example Applications
-	* [Marcelo Jacinto](https://github.com/MarceloJacinto)
-	* [João Pinto](https://github.com/jschpinto)
+- **soarenv/**:  
+  Contains the SoarEnvGen pipeline that generates CFD/OpenFOAM simulation environments. For detailed setup and usage instructions, see [soarenv/README.md](soarenv/README.md).
 
-Also check the always up-to-date [Github contributors list](https://github.com/PegasusSimulator/PegasusSimulator/graphs/contributors)
+---
+### Simulator Folder
 
-## Project Roadmap
+The `simulator/` folder contains core logic components that drive the simulation framework:
 
-An high level project roadmap is available [here](https://pegasussimulator.github.io/PegasusSimulator/source/references/roadmap.html).
+- logic/: This subfolder includes essential models:
+  - atmosphere.py: Simulates atmospheric conditions, including wind and air density variations.
+  - dynamics.py: Implements fixed-wing aircraft physics and aerodynamic forces.
+  - sensors.py: Simulates onboard sensors for environment perception.
+  - vehicle.py: Defines vehicle properties and interactions with the physics engine.
 
-## Support and Contributing
+- state.py: Manages the overall state of the simulation, keeping track of the environment and vehicles.
 
-We welcome new contributions from the community to improve this work. Please check the [Contributing](https://pegasussimulator.github.io/PegasusSimulator/source/references/contributing.html) section in the documentation for the guidelines on how to help improve and support this project.
+- vehicle_manager.py: Oversees vehicle control, initialization, and interaction with the simulation engine.
 
-* Use [Discussions](https://github.com/PegasusSimulator/PegasusSimulator/discussions) for discussing ideas, asking questions, and requests features.
-* Use [Issues](https://github.com/PegasusSimulator/PegasusSimulator/issues) to track work in development, bugs and documentation issues.
-* Use [Pull Requests](https://github.com/PegasusSimulator/PegasusSimulator/pulls) to fix bugs or contribute directly with your own ideas, code, examples or improve documentation.
+These modules collectively ensure that Osprey Simulator provides a realistic simulation of fixed-wing flight dynamics and sensor-based perception.
 
-## Licenses
+## Installation and Setup
 
-Pegasus Simulator is released under [BSD-3 License](LICENSE). The license files of its dependencies and assets are present in the [`docs/licenses`](docs/licenses) directory.
+### Required Software
 
-NVIDIA Isaac Sim is available freely under [individual license](https://www.nvidia.com/en-us/omniverse/download/). 
+The following software has been tested on **Ubuntu 20.04 LTS**:
 
-PX4-Autopilot is available as an open-source project under [BSD-3 License](https://github.com/PX4/PX4-Autopilot).
+- **Omniverse Launcher & Isaac Sim**  
+  - [Omniverse Launcher](https://www.nvidia.com/en-us/omniverse/launcher/)  
+  - **Isaac Sim** (Install with the Omniverse Launcher; tested with version **2022.2.0**)
+- **Blender**
+- **OpenFOAM** (v2212)
+- **ROS (Noetic)**
 
-## Project Sponsors
-- Dynamics Systems and Ocean Robotics (DSOR) group of the Institute for Systems and Robotics (ISR), a research unit of the Laboratory of Robotics and Engineering Systems (LARSyS).
-- Instituto Superior Técnico, Universidade de Lisboa
+### Installation Instructions
 
-The work developed by Marcelo Jacinto and João Pinto was supported by Ph.D. grants funded by Fundação para a Ciência e Tecnologia (FCT).
+#### Omniverse Launcher & Isaac Sim
 
-<p float="left" align="center">
-  <img src="docs/_static/dsor_logo.png" width="90" align="center" />
-  <img src="docs/_static/logo_isr.png" width="200" align="center"/> 
-  <img src="docs/_static/larsys_logo.png" width="200" align="center"/> 
-  <img src="docs/_static/ist_logo.png" width="200" align="center"/> 
-  <img src="docs/_static/logo_fct.png" width="200" align="center"/> 
-</p>
+1. **Download, install, and run the Omniverse Launcher.**  
+   It is strongly recommended to install it with the cache enabled. For troubleshooting, refer to the Omniverse documentation.
 
+2. **Create a Local Nucleus Server:**  
+   Go to the 'Nucleus' tab in the Launcher and enable it. You will need to create an associated local Nucleus account (this is not linked to any other account).
 
-# Soaring Simulator 
+3. **Install Isaac Sim:**  
+   - Go to the 'Exchange' tab in the Launcher and select Isaac Sim.
+   - Note: The default installation location is `~/.local/share/ov/pkg/isaac_sim-<version>`.
 
-Install: watch out for isaac sim version
+4. **Download the Necessary Content:**  
+   - From the 'Exchange' tab, download both the **Industrial 3D Models Pack** and the **USD Physics Sample Pack** by clicking 'Save as...'.
+   - From the 'Nucleus' tab, navigate to `localhost/NVIDIA/Assets/Isaac/<version>/Isaac/Environments/Simple_Warehouse` and download the contents via the download button.
+   - Extract these folders to `~/Omniverse_content`. (You can specify another location in AutoGDM2 settings if needed.)
 
-  --> Put link to Isaac install
+---
 
-  --> Explain environments etc , coming from other directory. Blender to USD to 
+## Usage
 
-  --> explain dynamics, fixed vs quadrotor
+### Soar_Detect
+- **Purpose:** Wind vector detection and inference using deep learning.
+- **Instructions:** See `soar_detect/README.md` for guidance on data preparation, training, evaluation, and inference.
 
-  --> Camera
+### Synthetic Data Generation
+- **Purpose:** Run simulations and generate synthetic data using the Pegasus Simulator fork, including fixed-wing dynamics.
+- **Instructions:** Refer to `synthetic_data_generation/README.md` for detailed simulation and data generation instructions.
 
-  --> Wind field
+### SoarEnvGen
+- **Purpose:** Generate simulation environments using the CFD/OpenFOAM pipeline.
+- **Instructions:** For installation and usage, see `soarenv/README.md`.
 
+---
 
+## Assets Note
+
+The folder located at `extensions/pegasus.simulator/pegasus/simulator/assets` does not contain actual asset files due to GitHub file size restrictions.
+
+To obtain these files:
+- **Generate them:** Use SoarEnvGen as described in its README.
+- **Request them:** Contact me directly if you require the asset files.
+
+---
+
+## License
+
+This project is licensed under the MIT License (or insert your preferred license).
+
+Feel free to contribute, open issues, or request additional features. For detailed instructions, consult the README files in each subfolder or refer to the Pegasus Simulator documentation.
